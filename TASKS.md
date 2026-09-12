@@ -1,0 +1,20 @@
+# Tasks
+- [x] CLI text/read/write connectivity
+- [x] Initial frontend files
+- [x] First code review corrections, Tailwind configuration
+- [x] Dependency install, typecheck, build
+- [x] Desktop/mobile browser and upload interaction QA
+- [x] High-converting viewfinder dropzone and realistic comparison/report layouts
+- [x] DeepSeek-Flash multimodal portrait analysis and side-by-side comparison engine
+- [x] Isolated PostgreSQL database schema (`aiattractiveness` / `aat_` tables)
+- [x] Better Auth authentication with email & Google/GitHub OAuth integrations
+- [x] Credit wallet & immutable audit ledger (`credit_ledger`) with atomic debit/refund failsafe
+- [x] Waffo one-time checkout + cryptographic idempotent webhook fulfillment
+- [x] Sunk-cost simulated diagnostic scan (3.4s) with laser animation & stage feedback
+- [x] In-page conversion paywall modal (`front-ref-imgs/pricing.png` layout, French Rose & Charcoal theme)
+- [x] 2-year persistent cookie guest checkout (`aat_guest_id`) & silent account provisioning
+- [x] Strict 1-to-1 email binding and user auto-reconciliation in webhook handler
+- [x] Complete payment architecture documentation (`PAYMENT_LOGIC.md`)
+- [ ] Self-serve "Restore by Order ID" UI modal for cross-device retrieval
+- [ ] Expand i18n message catalogs for additional locales
+

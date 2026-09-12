@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* --- Clean White & Premium Minimal Canvas System --- */
+    --bg-page: #ffffff;
+    --bg-page-subtle: #fbfbfb;
+    --card-bg: #ffffff;
+    --card-bg-solid: #ffffff;
+    --card-bg-subtle: #faf8f9;
+
+    /* --- High-end Warm Charcoal Neutrals (High Contrast, Human & Editorial) --- */
+    --text-main: #1f1d1e;
+    --text-muted: #575254;
+    --text-subtle: #8a8486;
+
+    /* --- Sophisticated French Rose & Blush Accents (No Plastic Pink) --- */
+    /* Primary: French Rose / Rose Wood (#e05670), Hover: Deep Berry Rose (#c43d56) */
+    --rose-primary: #e05670;
+    --rose-hover: #c43d56;
+    --rose-active: #a82e44;
+    --rose-light: #fdf2f4;
+    --rose-glow: rgba(224, 86, 112, 0.12);
+    --rose-border: #f5d0d8;
+    --rose-focus-ring: rgba(224, 86, 112, 0.25);
+
+    /* --- Architectural Subtle Warm Borders --- */
+    --border-color: #f0e6e8;
+    --border-dark: #e2d3d6;
+
+    /* --- Refined Status Indicators --- */
+    --status-amber-bg: #fffbeb;
+    --status-amber-border: #fde68a;
+    --status-amber-text: #92400e;
+
+    --status-green-bg: #f0fdf4;
+    --status-green-border: #bbf7d0;
+    --status-green-text: #166534;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+}
+
+/* Accessible focus styling */
+*:focus-visible {
+  outline: 2px solid var(--rose-primary);
+  outline-offset: 2px;
+}
+
+/* Crisp typographic tracking */
+h1, h2, h3, .font-heading {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-main);
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+/* Glassmorphic & Elevated Cards */
+.card-panel {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-panel:hover {
+  box-shadow: 0 10px 28px -4px rgba(224, 86, 112, 0.06), 0 2px 8px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* Modern Petal Button System */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  text-decoration: none;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-rose {
+  background: linear-gradient(135deg, #e5657d 0%, #e05670 50%, #c43d56 100%);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 14px rgba(224, 86, 112, 0.25);
+}
+
+.btn-rose:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e05670 0%, #c43d56 50%, #a82e44 100%);
+  box-shadow: 0 6px 18px rgba(224, 86, 112, 0.32);
+  transform: translateY(-1px);
+}
+
+.btn-rose:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: var(--text-main);
+  border-color: var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--bg-page-subtle);
+  border-color: var(--rose-primary);
+  color: var(--rose-primary);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--rose-primary);
+  border-color: var(--border-dark);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--rose-light);
+  border-color: var(--rose-primary);
+}
+
+/* Floating Pill Tabs */
+.tabs-container {
+  display: flex;
+  background-color: #f8f6f7;
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 0.35rem;
+  gap: 0.35rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--rose-primary);
+}
+
+.tab-btn.active {
+  background-color: #ffffff;
+  color: var(--rose-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-weight: 700;
+}
+
+/* Camera Viewfinder Portrait Dropzone (Distinct from generic upload boxes) */
+.viewfinder-dropzone {
+  position: relative;
+  border: 1.5px dashed var(--border-dark);
+  border-radius: 1.25rem;
+  background: #ffffff;
+  padding: 2.75rem 1.5rem;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.viewfinder-dropzone:hover,
+.viewfinder-dropzone.dragover,
+.viewfinder-dropzone:focus-visible {
+  border-color: var(--rose-primary);
+  background: #faf7f8;
+  box-shadow: 0 0 0 4px var(--rose-glow), 0 8px 20px rgba(0, 0, 0, 0.04);
+  outline: none;
+}
+
+/* Viewfinder Corner Accents */
+.viewfinder-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--rose-primary);
+  opacity: 0.75;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.viewfinder-dropzone:hover .viewfinder-corner,
+.viewfinder-dropzone.dragover .viewfinder-corner {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.viewfinder-tl { top: 12px; left: 12px; border-top: 2px solid; border-left: 2px solid; }
+.viewfinder-tr { top: 12px; right: 12px; border-top: 2px solid; border-right: 2px solid; }
+.viewfinder-bl { bottom: 12px; left: 12px; border-bottom: 2px solid; border-left: 2px solid; }
+.viewfinder-br { bottom: 12px; right: 12px; border-bottom: 2px solid; border-right: 2px solid; }
+
+/* Subtle Pill Badges */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background-color: var(--card-bg-solid);
+  border: 1px solid var(--border-color);
+  color: var(--rose-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* Result cards */
+.result-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 0.875rem;
+  padding: 1.125rem 1.25rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.result-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--rose-border);
+  box-shadow: 0 6px 16px rgba(224, 86, 112, 0.08);
+}
+
+/* Responsive grid layouts */
+.grid-compare {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .grid-compare {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .metric-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Portrait Scanning HUD & Laser Beam Effect */
+@keyframes scan-laser {
+  0% {
+    top: 2%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 94%;
+    opacity: 1;
+  }
+  100% {
+    top: 2%;
+    opacity: 0.8;
+  }
+}
+
+.scanner-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #e05670 20%, #ffffff 50%, #e05670 80%, transparent 100%);
+  box-shadow: 0 0 16px 3px rgba(224, 86, 112, 0.85);
+  animation: scan-laser 2.2s ease-in-out infinite;
+  z-index: 20;
+  pointer-events: none;
+}
+
