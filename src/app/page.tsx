@@ -22,6 +22,15 @@ import {
   Award,
   Trophy,
   Lightbulb,
+  ShieldCheck,
+  Clock,
+  Scale,
+  UserCheck,
+  TrendingUp,
+  Eye,
+  Smile,
+  Sliders,
+  ArrowUp,
 } from 'lucide-react';
 import { messages } from '@/lib/messages/en';
 import { APP_CONFIG, CREDIT_PACKAGES } from '@/lib/config';
@@ -354,28 +363,28 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-[840px] mx-auto w-full">
+    <div className="w-full">
       {/* Hero Header */}
-      <section className="text-center mb-10">
+      <section className="text-center mb-12 max-w-4xl mx-auto px-4">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#f5d0d8] text-[#e05670] text-xs sm:text-sm font-semibold mb-4 shadow-xs">
           <ScanFace size={16} strokeWidth={2.2} />
           <span>Objective Portrait Guidance</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.15] mb-4 text-[#1f1d1e] tracking-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.12] mb-5 text-[#1f1d1e] tracking-tight">
           {messages.hero.title}
         </h1>
-        <p className="text-base sm:text-lg text-[#575254] max-w-[620px] mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg md:text-xl text-[#575254] max-w-2xl mx-auto leading-relaxed">
           {messages.hero.subtitle}
         </p>
       </section>
 
       {/* Main Centered Test Panel */}
-      <section className="card-panel p-6 sm:p-8 mb-12 relative overflow-hidden">
+      <section id="upload-section" className="card-panel max-w-4xl mx-auto p-6 sm:p-10 mb-20 relative overflow-hidden shadow-lg border-[#e8dcd0]/70">
         {/* Soft Warm Ambient Glow */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-[#fdf2f4] to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#fdf2f4] via-[#fbf0f2] to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
         {/* Three Tabs - Clean Photography Diagnostic Modes */}
-        <div className="tabs-container mb-6 max-w-[520px] mx-auto">
+        <div className="tabs-container mb-8 max-w-[560px] mx-auto">
           <button
             type="button"
             className={`tab-btn ${activeTab === 'fast' ? 'active' : ''}`}
@@ -902,8 +911,448 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Section 1: Real Assessment Reports Showcase (Example Gallery with Premium Visuals) */}
+      <section className="mb-20 max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fdf2f4] border border-[#f5d0d8] text-[#e05670] text-xs font-semibold mb-3">
+            <Camera size={13} />
+            <span>Editorial Sample Results</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1f1d1e] tracking-tight mb-3">
+            Example Attractiveness & Portrait Compare Results
+          </h2>
+          <p className="text-base sm:text-lg text-[#575254] max-w-2xl mx-auto">
+            See how our detailed portrait assessment visualizes key score differences, lighting harmony, and delivers clear comparative verdicts.
+          </p>
+        </div>
+
+        {/* High-End Realistic Showcase Display Mockup */}
+        <div className="card-panel p-4 sm:p-8 bg-gradient-to-b from-[#faf8f9] to-white border border-[#ebdada] shadow-xl rounded-3xl overflow-hidden mb-8">
+          <div className="relative w-full rounded-2xl overflow-hidden border border-[#e8dcd0] shadow-md bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/sample-previews/example-compare.png"
+              alt="Example Attractiveness Test and Face Compare Reports"
+              className="w-full h-auto object-cover block"
+            />
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-[#f0e6e8]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#fdf2f4] border border-[#f5d0d8] flex items-center justify-center text-[#e05670] shrink-0">
+                <ScanFace size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#1f1d1e]">Facial Symmetry & Traits</h4>
+                <p className="text-xs text-[#8a8486]">Golden ratio proportion mapping</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#fdf2f4] border border-[#f5d0d8] flex items-center justify-center text-[#e05670] shrink-0">
+                <Sliders size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#1f1d1e]">Lighting & Contrast</h4>
+                <p className="text-xs text-[#8a8486]">Diffused studio lighting check</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#fdf2f4] border border-[#f5d0d8] flex items-center justify-center text-[#e05670] shrink-0">
+                <Trophy size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#1f1d1e]">Winner Decision Verdict</h4>
+                <p className="text-xs text-[#8a8486]">Side-by-side preference analysis</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 2: Full-Bleed Luxury Photographic Banner ("What Does the Assessment Measure?") */}
+      {/* 唯一全屏贯穿的底图 (100% Viewport Width Full-Bleed with dark warm gradient scrim) */}
+      <section className="w-full relative overflow-hidden my-20 sm:my-28 py-20 sm:py-28 md:py-32 bg-[#1a1315]">
+        {/* Background Photographic Image spanning 100% full-bleed */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/sample-previews/measure-banner.png"
+          alt="What Does the AI Attractiveness Test Measure"
+          className="absolute inset-0 w-full h-full object-cover object-center block select-none pointer-events-none"
+        />
+
+        {/* Warm Dark Editorial Gradient Scrim Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/45" />
+
+        {/* Centered Editorial Text Content - Restrained to max-w-2xl so text is not spread too wide and faces remain visible */}
+        <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 text-center flex flex-col items-center">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-5 sm:mb-6 leading-[1.15] drop-shadow-md">
+            What Does the AI Attractiveness Test Measure?
+          </h2>
+          <p className="text-sm sm:text-base md:text-lg text-white/95 leading-relaxed mb-5 font-normal drop-shadow">
+            Most apps just guess a random number, but our comprehensive face analysis breaks your selfie down scientifically. First, we measure your <strong className="text-white font-semibold">Structural Traits</strong>—the undeniable genetics of your face. The algorithm acts as a precise golden ratio face test and face symmetry test, scoring your facial proportions and how perfectly balanced your features are from 1 to 10.
+          </p>
+          <p className="text-sm sm:text-base md:text-lg text-white/90 leading-relaxed mb-8 font-normal drop-shadow">
+            Second, our portrait test evaluates your <strong className="text-white font-semibold">Perceived Vibe</strong>—the subjective, magnetic energy you project to others. It reads your micro-expressions to score your natural confidence, intelligence, and approachability. Finally, our system applies a smart, weighted calculation to all dimensions, delivering one highly accurate, comprehensive overall score out of 10.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('upload-section');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="px-8 py-3.5 rounded-full bg-[#e05670] hover:bg-[#c43d56] text-white font-bold text-sm sm:text-base shadow-xl transition-all transform hover:scale-105 active:scale-95 cursor-pointer border border-white/20"
+          >
+            Get Your Attractiveness Rating
+          </button>
+        </div>
+      </section>
+
+      {/* Section 3: Why We Offer the Best Test (Matching Competitor Clean 3-Card Card Layout) */}
+      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-12">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
+            Why We Offer the Best AI Attractiveness Test
+          </h2>
+          <p className="text-base sm:text-lg text-[#575254] max-w-2xl mx-auto leading-relaxed">
+            Not all face raters are created equal. Discover why users trust our platform as the most secure, comprehensive, and accurate portrait assessment available today.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-10">
+          {/* Card 1: Superior Accuracy */}
+          <div className="card-panel p-8 sm:p-10 rounded-3xl border border-[#f0e6e8] shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center bg-white">
+            <div className="w-12 h-12 rounded-full border border-[#f5d0d8] bg-[#fdf2f4] flex items-center justify-center text-[#e05670] mb-6">
+              <CheckCircle2 size={22} />
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f1d1e] mb-3">
+              Superior Accuracy.
+            </h3>
+            <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+              Unlike generic chat bots, our specialized assessment model is purpose-built for highly detailed, photographic face analysis and golden ratio geometry.
+            </p>
+          </div>
+
+          {/* Card 2: Instant Diagnostics */}
+          <div className="card-panel p-8 sm:p-10 rounded-3xl border border-[#f0e6e8] shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center bg-white">
+            <div className="w-12 h-12 rounded-full border border-[#f5d0d8] bg-[#fdf2f4] flex items-center justify-center text-[#e05670] mb-6">
+              <Clock size={22} />
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f1d1e] mb-3">
+              Instant & Transparent
+            </h3>
+            <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+              No waiting. Simply upload your portrait and instantly receive a comprehensive baseline face rating and lighting breakdown in under 30 seconds.
+            </p>
+          </div>
+
+          {/* Card 3: 100% Private & Ephemeral */}
+          <div className="card-panel p-8 sm:p-10 rounded-3xl border border-[#f0e6e8] shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center bg-white">
+            <div className="w-12 h-12 rounded-full border border-[#f5d0d8] bg-[#fdf2f4] flex items-center justify-center text-[#e05670] mb-6">
+              <ShieldCheck size={22} />
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f1d1e] mb-3">
+              100% Secure & Ephemeral
+            </h3>
+            <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+              Your privacy is our highest priority. Uploaded photos are processed in volatile memory for your report and never permanently stored or repurposed.
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('upload-section');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="px-8 py-3.5 rounded-full bg-[#e05670] hover:bg-[#c43d56] text-white font-bold text-sm sm:text-base shadow-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Try the Best Attractiveness Rater
+          </button>
+        </div>
+      </section>
+
+      {/* Section 4: Photography Pro Tips ("How to Get an Accurate AI Attractiveness Score") */}
+      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-12">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
+            How to Get an Accurate AI Attractiveness Score (Pro Tips)
+          </h2>
+          <p className="text-base sm:text-lg text-[#575254] max-w-2xl mx-auto leading-relaxed">
+            The best portrait assessment requires a high-quality upload. For the most accurate rating results, follow these four quick photography guidelines before scanning your face.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Left: High-Res Photography Collage Image */}
+          <div className="lg:col-span-6">
+            <div className="relative rounded-3xl overflow-hidden border border-[#ebdada] shadow-xl bg-[#faf8f9]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/sample-previews/sample-portrait-1.png"
+                alt="Pro Tips Photography Guidelines"
+                className="w-full h-auto object-cover block"
+              />
+            </div>
+          </div>
+
+          {/* Right: 4 Editorial Bullet Points */}
+          <div className="lg:col-span-6 flex flex-col gap-6">
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Use Natural Lighting:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  Avoid harsh direct shadows and backlighting. Stand facing a soft window for even ambient light to ensure a precise facial symmetry test.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Keep Your Phone Level:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  Avoid extreme high or low selfie angles. Hold your camera straight at eye level for a true, distortion-free portrait assessment.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Stay Natural & Relaxed:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  Forced smiles tense up facial muscles. Keep your expression relaxed with subtle natural warmth for authentic facial analysis.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Remove Obstructing Accessories:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  The analysis requires an unobstructed view of key landmarks. Take off dark sunglasses, hats, and push back hair to reveal your natural jawline and bone structure.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 5: Improvement Blueprint ("How to Improve Your AI Attractiveness Score") */}
+      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-12">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
+            How to Improve Your AI Attractiveness Score
+          </h2>
+          <p className="text-base sm:text-lg text-[#575254] max-w-2xl mx-auto leading-relaxed">
+            Your beauty score test is just the starting point. While bone structure is unique, you can significantly boost your overall presence by optimizing the elements you can control.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10">
+          {/* Left: 4 Improvement Pillars */}
+          <div className="lg:col-span-6 flex flex-col gap-6">
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Invest in Skincare & Grooming:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  Clear, hydrated skin reflects light evenly. A consistent daily routine highlights your natural features and boosts your real-world face rating.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Focus on Jawline Definition & Health:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  Regular physical activity and balanced hydration reduce facial puffiness, revealing a sharper jawline and more defined bone structure.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Master Your Micro-Expression:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  A genuine micro-smile makes you instantly approachable. Strong, focused eye contact projects natural confidence and high charisma.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e05670] mt-2 shrink-0" />
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-[#1f1d1e] mb-1">
+                  Refine Neck Angle & Head Posture:
+                </h4>
+                <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+                  Slouching dampens perceived confidence. Standing tall immediately improves your neck contour and projects commanding, magnetic presence.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: High-Res Lifestyle Photography Collage Image */}
+          <div className="lg:col-span-6">
+            <div className="relative rounded-3xl overflow-hidden border border-[#ebdada] shadow-xl bg-[#faf8f9]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/sample-previews/sample-portrait-2.png"
+                alt="Improve Your Portrait Presence Blueprint"
+                className="w-full h-auto object-cover block"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('upload-section');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="px-8 py-3.5 rounded-full bg-[#e05670] hover:bg-[#c43d56] text-white font-bold text-sm sm:text-base shadow-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Improve Attractiveness Score
+          </button>
+        </div>
+      </section>
+
+      {/* Section 6: Why Take an AI Attractiveness Test? (3 High-Impact Cards) */}
+      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-12">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
+            Why Take an AI Attractiveness Test?
+          </h2>
+          <p className="text-base sm:text-lg text-[#575254] max-w-2xl mx-auto leading-relaxed">
+            When you search for an attractiveness photo test, it is rarely just vanity. An accurate portrait assessment is a highly practical tool for self-awareness, social media optimization, and actionable personal improvement.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-10">
+          {/* Card 1: 100% Unbiased Opinion */}
+          <div className="card-panel p-8 sm:p-10 rounded-3xl border border-[#f0e6e8] shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center bg-white">
+            <div className="w-12 h-12 rounded-full border border-[#f5d0d8] bg-[#fdf2f4] flex items-center justify-center text-[#e05670] mb-6">
+              <Scale size={22} />
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f1d1e] mb-3">
+              Get a 100% Unbiased Opinion.
+            </h3>
+            <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+              Friends and family are often too polite to be completely honest. Our portrait evaluation provides an objective assessment based on pure geometry and visual harmony, not flattery.
+            </p>
+          </div>
+
+          {/* Card 2: Optimize Online Profiles */}
+          <div className="card-panel p-8 sm:p-10 rounded-3xl border border-[#f0e6e8] shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center bg-white">
+            <div className="w-12 h-12 rounded-full border border-[#f5d0d8] bg-[#fdf2f4] flex items-center justify-center text-[#e05670] mb-6">
+              <UserCheck size={22} />
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f1d1e] mb-3">
+              Optimize Your Online Profiles.
+            </h3>
+            <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+              First impressions matter online. Use your portrait test results to scientifically select the most magnetic, high-converting photo for your dating apps or professional networks.
+            </p>
+          </div>
+
+          {/* Card 3: Track Glow-Up Progress */}
+          <div className="card-panel p-8 sm:p-10 rounded-3xl border border-[#f0e6e8] shadow-sm hover:shadow-md transition-all flex flex-col items-center text-center bg-white">
+            <div className="w-12 h-12 rounded-full border border-[#f5d0d8] bg-[#fdf2f4] flex items-center justify-center text-[#e05670] mb-6">
+              <TrendingUp size={22} />
+            </div>
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f1d1e] mb-3">
+              Track Your &quot;Glow-Up&quot; Progress.
+            </h3>
+            <p className="text-sm sm:text-base text-[#575254] leading-relaxed">
+              Changing hairstyle, starting a new skincare routine, or working out? Getting a baseline score allows you to tangibly track how those physical improvements increase your overall rating.
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById('upload-section');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="px-8 py-3.5 rounded-full bg-[#e05670] hover:bg-[#c43d56] text-white font-bold text-sm sm:text-base shadow-md transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            Score Your Attractiveness
+          </button>
+        </div>
+      </section>
+
+      {/* Section 5: Bottom Call to Action Banner */}
+      <section className="mb-14 max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="card-panel p-7 sm:p-9 bg-gradient-to-r from-[#fdf2f4] via-[#fbf0f2] to-[#faf8f9] border border-[#f5d0d8] rounded-3xl text-center relative overflow-hidden">
+          <div className="max-w-[540px] mx-auto relative z-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1f1d1e] tracking-tight mb-2.5">
+              Ready to Discover Your Portrait Score?
+            </h2>
+            <p className="text-sm sm:text-base text-[#575254] mb-6 leading-relaxed">
+              Upload your photo above to receive immediate photography ratings and personalized lighting recommendations.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('upload-section');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-[#e05670] hover:bg-[#d04560] text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all transform active:scale-98 cursor-pointer"
+            >
+              <span>Analyze Your Portrait Now</span>
+              <ArrowUp size={16} />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Frequently Asked Questions */}
-      <section className="mb-12">
+      <section className="mb-12 max-w-4xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-7">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1f1d1e] mb-2 tracking-tight">
             {messages.faq.title}

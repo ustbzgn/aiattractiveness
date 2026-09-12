@@ -15,6 +15,9 @@
 - [x] 2-year persistent cookie guest checkout (`aat_guest_id`) & silent account provisioning
 - [x] Strict 1-to-1 email binding and user auto-reconciliation in webhook handler
 - [x] Complete payment architecture documentation (`PAYMENT_LOGIC.md`)
+- [x] Enriched homepage layout with sample reports, platform advantages, and use cases
+- [x] Full-bleed measurement banner with centered reading container and photographic visuals
+- [x] Editorial layout polish: photography pro tips, improvement blueprint, and centered card grids
 - [ ] Self-serve "Restore by Order ID" UI modal for cross-device retrieval
 - [ ] Expand i18n message catalogs for additional locales
 
