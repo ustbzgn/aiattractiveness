@@ -18,6 +18,9 @@
 - [x] Enriched homepage layout with sample reports, platform advantages, and use cases
 - [x] Full-bleed measurement banner with centered reading container and photographic visuals
 - [x] Editorial layout polish: photography pro tips, improvement blueprint, and centered card grids
+- [x] Deep Scan 6-dimension facial diagnostics and 5-region physical pixel cropping (Sharp)
+- [x] 1:1 Magazine editorial poster design (DeepScanEditorialPoster matching imgs/analysis.png)
+- [x] High-resolution HTML DOM-to-PNG export engine (html-to-image) for 100% WYSIWYG download & share
 - [ ] Self-serve "Restore by Order ID" UI modal for cross-device retrieval
 - [ ] Expand i18n message catalogs for additional locales
 

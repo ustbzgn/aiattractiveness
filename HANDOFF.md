@@ -20,8 +20,13 @@
     - Removed 401 gate on `/api/checkout/credits`, enabling zero-login instant checkout.
     - Upgraded `/api/user/credits` and `/api/analysis/portrait` to support both authenticated members and credited guests with atomic balance checks.
     - Upgraded Waffo Pancake webhook handler (`src/lib/payment/webhook-handler.ts`) with idempotent event dedup, strict 1-to-1 buyer email binding, and automatic user consolidation across 4 full scenarios (Logged-in, Guest with Existing Account, Guest Turnaround, and External Direct Payment).
+  - **Deep Scan & 1:1 Editorial Poster Architecture**:
+    - Implemented 6-dimension facial diagnostics and 5-region normalized physical pixel cropping (`face`, `eyes`, `nose`, `lips`, `jawline`) using Sharp (`src/lib/ai/portrait-crop.ts`).
+    - Crafted `<DeepScanEditorialPoster />` matching `imgs/analysis.png` with 5 coordinate landmark pins, dashed scale lines, skin/eye/hair palettes, bento feature cards, overall rating card (serif font), and circular feature harmony donut.
+    - Upgraded exporter from Canvas 2D drawing to client-side HTML DOM-to-PNG rasterization (`html-to-image`) for true 100% WYSIWYG download & share card exports.
   - **Documentation**:
     - Created comprehensive payment & credit architecture documentation: `PAYMENT_LOGIC.md`.
+    - Created acceptance and progress records: `DEEP_SCAN_PROGRESS.md` and `DEEP_SCAN_ACCEPTANCE.md`.
 - **Pending / Next Tasks:**
   - Build optional self-serve "Restore Purchases by Order ID & Email" dialog in navbar/login.
   - Configure Resend / AWS SES or Google OAuth production credentials when ready for custom domain email automation.

@@ -32,12 +32,15 @@ import {
   Sliders,
   ArrowUp,
 } from 'lucide-react';
+import styles from './home.module.css';
 import { messages } from '@/lib/messages/en';
 import { APP_CONFIG, CREDIT_PACKAGES } from '@/lib/config';
 import type {
   PortraitAnalysisResult,
   PortraitComparisonResult,
 } from '@/lib/ai/deepseek';
+import { DeepScanReport, DEEP_SCAN_FIXTURES } from '@/lib/types/deep-scan';
+import { DeepScanReportView } from '@/components/analysis/DeepScanReportView';
 
 type TabType = 'fast' | 'deep' | 'compare';
 
@@ -66,6 +69,7 @@ export default function HomePage() {
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [scanStageText, setScanStageText] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<PortraitAnalysisResult | null>(null);
+  const [deepScanResult, setDeepScanResult] = useState<DeepScanReport | null>(null);
   const [comparisonResult, setComparisonResult] = useState<PortraitComparisonResult | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const reportSectionRef = useRef<HTMLDivElement | null>(null);
@@ -274,6 +278,7 @@ export default function HomePage() {
     // Authenticated user with sufficient credits -> run real AI portrait assessment
     setIsAnalyzing(true);
     setAnalysisResult(null);
+    setDeepScanResult(null);
     setComparisonResult(null);
     setShowApiNotice(false);
 
@@ -306,6 +311,8 @@ export default function HomePage() {
 
       if (activeTab === 'compare') {
         setComparisonResult(json.data as PortraitComparisonResult);
+      } else if (activeTab === 'deep') {
+        setDeepScanResult(json.data as DeepScanReport);
       } else {
         setAnalysisResult(json.data as PortraitAnalysisResult);
       }
@@ -363,26 +370,21 @@ export default function HomePage() {
   };
 
   return (
-    <div className="w-full">
+    <div className={styles.home}>
       {/* Hero Header */}
-      <section className="text-center mb-12 max-w-4xl mx-auto px-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-[#f5d0d8] text-[#e05670] text-xs sm:text-sm font-semibold mb-4 shadow-xs">
-          <ScanFace size={16} strokeWidth={2.2} />
-          <span>Objective Portrait Guidance</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.12] mb-5 text-[#1f1d1e] tracking-tight">
-          {messages.hero.title}
-        </h1>
-        <p className="text-base sm:text-lg md:text-xl text-[#575254] max-w-2xl mx-auto leading-relaxed">
-          {messages.hero.subtitle}
-        </p>
+      <section className={styles.hero}>
+        <div className={styles.eyebrow}><span /> THE ART OF A GOOD PORTRAIT <span /></div>
+        <h1>Portrait Feedback <em>&amp; Lighting Suggestions</em></h1>
+        <p>{messages.hero.subtitle}</p>
+        <div className={styles.heroNote}>A fresh perspective on your most natural self.</div>
       </section>
 
       {/* Main Centered Test Panel */}
-      <section id="upload-section" className="card-panel max-w-4xl mx-auto p-6 sm:p-10 mb-20 relative overflow-hidden shadow-lg border-[#e8dcd0]/70">
+      <section id="upload-section" className={styles.uploadPanel}>
         {/* Soft Warm Ambient Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#fdf2f4] via-[#fbf0f2] to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
+        <div className={styles.panelHeading}><span>YOUR PORTRAIT, IN FOCUS</span><span>01 / UPLOAD</span></div>
         {/* Three Tabs - Clean Photography Diagnostic Modes */}
         <div className="tabs-container mb-8 max-w-[560px] mx-auto">
           <button
@@ -727,9 +729,21 @@ export default function HomePage() {
       </section>
 
       {/* Analysis Result (Rendered only after analysis is performed) */}
-      {(comparisonResult || analysisResult) && (
+      {(comparisonResult || analysisResult || deepScanResult) && (
         <section ref={reportSectionRef} className="card-panel p-6 sm:p-8 mb-12 relative overflow-hidden">
-          {comparisonResult ? (
+          {deepScanResult ? (
+            /* Deep Scan 6-Dimension Diagnostics Report View */
+            <DeepScanReportView
+              report={deepScanResult}
+              isDevPreview={process.env.NODE_ENV !== 'production'}
+              onReset={() => {
+                setDeepScanResult(null);
+                setSingleFile(null);
+                setSinglePreview(null);
+              }}
+              onSelectFixture={(f) => setDeepScanResult(f)}
+            />
+          ) : comparisonResult ? (
             /* Side-by-Side Comparison Live Result View */
             <div>
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -912,7 +926,7 @@ export default function HomePage() {
       )}
 
       {/* Section 1: Real Assessment Reports Showcase (Example Gallery with Premium Visuals) */}
-      <section className="mb-20 max-w-5xl mx-auto px-4 sm:px-6">
+      <section className={styles.showcase}>
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fdf2f4] border border-[#f5d0d8] text-[#e05670] text-xs font-semibold mb-3">
             <Camera size={13} />
@@ -928,13 +942,14 @@ export default function HomePage() {
 
         {/* High-End Realistic Showcase Display Mockup */}
         <div className="card-panel p-4 sm:p-8 bg-gradient-to-b from-[#faf8f9] to-white border border-[#ebdada] shadow-xl rounded-3xl overflow-hidden mb-8">
-          <div className="relative w-full rounded-2xl overflow-hidden border border-[#e8dcd0] shadow-md bg-white">
+          <div className={styles.reportCrop}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/sample-previews/example-compare.png"
-              alt="Example Attractiveness Test and Face Compare Reports"
+              src="/imgs/analysis.png"
+              alt="Sample individual portrait analysis report"
               className="w-full h-auto object-cover block"
             />
+            <img src="/imgs/sidebyside.png" alt="Sample side-by-side portrait comparison report" className="w-full h-auto object-contain block" />
           </div>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-[#f0e6e8]">
@@ -971,17 +986,10 @@ export default function HomePage() {
 
       {/* Section 2: Full-Bleed Luxury Photographic Banner ("What Does the Assessment Measure?") */}
       {/* 唯一全屏贯穿的底图 (100% Viewport Width Full-Bleed with dark warm gradient scrim) */}
-      <section className="w-full relative overflow-hidden my-20 sm:my-28 py-20 sm:py-28 md:py-32 bg-[#1a1315]">
-        {/* Background Photographic Image spanning 100% full-bleed */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/sample-previews/measure-banner.png"
-          alt="What Does the AI Attractiveness Test Measure"
-          className="absolute inset-0 w-full h-full object-cover object-center block select-none pointer-events-none"
-        />
-
-        {/* Warm Dark Editorial Gradient Scrim Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/45" />
+      <section className={styles.measure}>
+        <img src="/imgs/threewomen.png" alt="" className={styles.measureImage} />
+        <div className={styles.measureOverlay} />
+        <div className={styles.measureLabel}>A CLOSER LOOK</div>
 
         {/* Centered Editorial Text Content - Restrained to max-w-2xl so text is not spread too wide and faces remain visible */}
         <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 text-center flex flex-col items-center">
@@ -1012,7 +1020,7 @@ export default function HomePage() {
       </section>
 
       {/* Section 3: Why We Offer the Best Test (Matching Competitor Clean 3-Card Card Layout) */}
-      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+      <section className={styles.editorial}>
         <div className="text-center mb-12">
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
             Why We Offer the Best AI Attractiveness Test
@@ -1082,7 +1090,7 @@ export default function HomePage() {
       </section>
 
       {/* Section 4: Photography Pro Tips ("How to Get an Accurate AI Attractiveness Score") */}
-      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+      <section className={styles.editorial}>
         <div className="text-center mb-12">
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
             How to Get an Accurate AI Attractiveness Score (Pro Tips)
@@ -1095,10 +1103,10 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left: High-Res Photography Collage Image */}
           <div className="lg:col-span-6">
-            <div className="relative rounded-3xl overflow-hidden border border-[#ebdada] shadow-xl bg-[#faf8f9]">
+            <div className={styles.tipsCrop}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/sample-previews/sample-portrait-1.png"
+                src="/imgs/fivewomen.png"
                 alt="Pro Tips Photography Guidelines"
                 className="w-full h-auto object-cover block"
               />
@@ -1159,7 +1167,7 @@ export default function HomePage() {
       </section>
 
       {/* Section 5: Improvement Blueprint ("How to Improve Your AI Attractiveness Score") */}
-      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+      <section className={styles.editorial}>
         <div className="text-center mb-12">
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
             How to Improve Your AI Attractiveness Score
@@ -1223,10 +1231,10 @@ export default function HomePage() {
 
           {/* Right: High-Res Lifestyle Photography Collage Image */}
           <div className="lg:col-span-6">
-            <div className="relative rounded-3xl overflow-hidden border border-[#ebdada] shadow-xl bg-[#faf8f9]">
+            <div className={styles.improvementCrop}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/sample-previews/sample-portrait-2.png"
+                src="/imgs/youga-fruit.png"
                 alt="Improve Your Portrait Presence Blueprint"
                 className="w-full h-auto object-cover block"
               />
@@ -1253,7 +1261,7 @@ export default function HomePage() {
       </section>
 
       {/* Section 6: Why Take an AI Attractiveness Test? (3 High-Impact Cards) */}
-      <section className="mb-24 max-w-5xl mx-auto px-4 sm:px-6">
+      <section className={styles.editorial}>
         <div className="text-center mb-12">
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1f1d1e] tracking-tight mb-4">
             Why Take an AI Attractiveness Test?
@@ -1323,7 +1331,7 @@ export default function HomePage() {
       </section>
 
       {/* Section 5: Bottom Call to Action Banner */}
-      <section className="mb-14 max-w-5xl mx-auto px-4 sm:px-6">
+      <section className={styles.closing}>
         <div className="card-panel p-7 sm:p-9 bg-gradient-to-r from-[#fdf2f4] via-[#fbf0f2] to-[#faf8f9] border border-[#f5d0d8] rounded-3xl text-center relative overflow-hidden">
           <div className="max-w-[540px] mx-auto relative z-10">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1f1d1e] tracking-tight mb-2.5">
@@ -1352,7 +1360,7 @@ export default function HomePage() {
       </section>
 
       {/* Frequently Asked Questions */}
-      <section className="mb-12 max-w-4xl mx-auto px-4 sm:px-6">
+      <section className={styles.faq}>
         <div className="text-center mb-7">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1f1d1e] mb-2 tracking-tight">
             {messages.faq.title}

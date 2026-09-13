@@ -1,10 +1,25 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
 import { APP_CONFIG } from '@/lib/config';
 import { messages } from '@/lib/messages/en';
 import { History, CreditCard } from 'lucide-react';
 import { NavbarAuth } from '@/components/navbar-auth';
 import './globals.css';
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+  weight: ['600', '700', '800', '900'],
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+});
 
 export const metadata: Metadata = {
   title: `${APP_CONFIG.appName} - Portrait Feedback & Lighting Suggestions`,
@@ -17,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col bg-white text-[#1f1d1e] selection:bg-[#fdf2f4] selection:text-[#e05670]">
+    <html lang="en" className={`${playfair.variable} ${jakarta.variable}`}>
+      <body className="min-h-screen flex flex-col bg-white text-[#1f1d1e] font-sans selection:bg-[#fdf2f4] selection:text-[#e05670]">
         {/* Navigation Header */}
         <header className="sticky top-0 z-40 border-b border-[#f0e6e8] bg-white/95 backdrop-blur-md">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
@@ -27,10 +42,10 @@ export default function RootLayout({
               className="flex items-center gap-2.5 text-[#1f1d1e] hover:text-[#e05670] transition-colors group"
             >
               <div className="flex flex-col">
-                <span className="font-heading text-xl sm:text-2xl tracking-tight text-[#1f1d1e] leading-tight font-extrabold">
+                <span className="font-heading font-serif text-xl sm:text-2xl tracking-tight text-[#1f1d1e] leading-tight font-extrabold">
                   {APP_CONFIG.appName}
                 </span>
-                <span className="text-[10px] sm:text-[11px] text-[#8a8486] font-semibold tracking-wider uppercase">
+                <span className="text-[10px] sm:text-[11px] text-[#8a8486] font-semibold tracking-wider uppercase font-sans">
                   {messages.nav.tagline}
                 </span>
               </div>

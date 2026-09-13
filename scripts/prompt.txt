@@ -1,0 +1,564 @@
+Create a premium editorial facial attractiveness analysis report poster for a fictional website called “AI Attractiveness Test”.
+
+VERTICAL FORMAT:
+2:3 portrait aspect ratio, approximately 1024x1536.
+The entire image is a finished luxury beauty-analysis report poster, shown straight-on with no perspective distortion.
+No browser chrome, no phone mockup, no surrounding environment.
+
+OVERALL ART DIRECTION:
+A sophisticated combination of a luxury European beauty magazine, premium skincare campaign, facial proportion analysis report, and refined editorial infographic.
+
+Use an elegant warm ivory background, approximately #F7F4EE.
+Typography in deep warm charcoal, approximately #282522.
+Accent color is muted camel brown / champagne bronze, approximately #B28356.
+Borders are extremely thin warm gray-beige, approximately #DDD7CE.
+Panels use very pale cream and warm white.
+The overall finish is matte, soft, expensive, restrained, refined and editorial.
+
+Avoid futuristic AI aesthetics.
+Avoid neon.
+Avoid purple or blue gradients.
+Avoid glossy glassmorphism.
+Avoid cyberpunk interfaces.
+Avoid dark UI.
+Avoid excessive icons.
+Avoid thick borders.
+Avoid overly rounded mobile-app cards.
+
+The design should look like a printed luxury beauty assessment sheet photographed perfectly flat.
+
+--------------------------------------------------
+HEADER
+--------------------------------------------------
+
+At the top, leave generous white space.
+
+Large elegant high-contrast fashion serif title aligned left:
+
+“ATTRACTIVENESS TEST”
+
+Use a Didot / Bodoni / Canela-inspired high-fashion serif typeface.
+Thin elegant strokes, strong contrast, sophisticated magazine feeling.
+The title spans most of the upper width.
+
+Directly below in very small uppercase sans-serif lettering with generous tracking:
+
+“AI-POWERED FACIAL BEAUTY ANALYSIS”
+
+At the upper right place a tiny four-point sparkle icon, followed by two lines of tiny uppercase text:
+
+“COMPREHENSIVE
+FACIAL ANALYSIS”
+
+Use extremely restrained typography.
+
+--------------------------------------------------
+MAIN UPPER CONTENT AREA
+--------------------------------------------------
+
+Below the header, create two main columns.
+
+LEFT COLUMN:
+approximately 57% of the width.
+
+RIGHT COLUMN:
+approximately 41% of the width.
+
+Use a narrow elegant gutter between them.
+
+Both columns are enclosed by subtle thin rounded rectangular borders.
+Corner radius should be small and refined, not app-like.
+
+--------------------------------------------------
+LEFT HERO PORTRAIT
+--------------------------------------------------
+
+Place a large vertical editorial portrait occupying almost the entire left column.
+
+The portrait shows an original adult woman in her mid-to-late 20s.
+
+APPEARANCE:
+warm light olive complexion,
+natural sun-kissed skin,
+subtle freckles across cheeks and nose,
+hazel-brown eyes,
+dark brown to black hair,
+thick naturally shaped eyebrows,
+soft symmetrical facial structure,
+refined straight nose,
+naturally full lips,
+slender elegant neck,
+visible collarbones.
+
+HAIR:
+dark hair loosely pulled back into a casual textured updo,
+slightly messy but beautiful,
+several wispy strands around the temples and forehead,
+natural windblown editorial texture.
+
+CLOTHING:
+a soft powder-blue or pale sky-blue off-the-shoulder blouse,
+lightweight cotton or linen texture,
+gathered neckline,
+romantic but minimal styling.
+
+ACCESSORIES:
+large delicate silver drop earrings,
+slightly reflective,
+luxury fashion editorial styling.
+
+EXPRESSION:
+neutral relaxed expression,
+slightly parted lips,
+direct eye contact with the camera,
+calm, confident, naturally beautiful,
+not smiling broadly.
+
+LIGHTING:
+soft natural daylight,
+subtle side illumination,
+realistic soft highlights on cheekbones,
+gentle skin luminosity,
+no artificial glamour lighting,
+no plastic skin.
+
+BACKGROUND:
+soft pale neutral stone or plaster wall,
+slightly out of focus,
+minimal and airy.
+
+PHOTOGRAPHIC STYLE:
+premium beauty editorial photography,
+real human skin texture,
+visible pores,
+subtle freckles,
+fine baby hairs,
+natural facial asymmetry,
+realistic eyelashes,
+realistic lips,
+high-end magazine photography,
+85mm portrait lens feeling,
+shallow but not extreme depth of field,
+soft analog tonal response,
+very subtle film grain,
+not CGI,
+not overly retouched.
+
+--------------------------------------------------
+FACIAL ANALYSIS OVERLAY ON PORTRAIT
+--------------------------------------------------
+
+Overlay extremely subtle facial-analysis guide lines directly on the portrait.
+
+Use thin champagne-gold lines at approximately 35–45% opacity.
+
+Include:
+a thin vertical center line running through forehead, nose, philtrum and chin,
+a horizontal eye-level guide,
+a horizontal cheek / nose proportion guide,
+a lower face proportion guide,
+small circular landmark points,
+tiny intersection dots around forehead, eyes, nose, cheeks, lips and jaw,
+several delicate diagonal connector lines extending toward the right analysis panel.
+
+The guides should feel elegant and scientific, not futuristic.
+No glowing lines.
+No facial mesh.
+No dense wireframe.
+No facial recognition box.
+
+--------------------------------------------------
+COLOR SWATCH STRIP
+--------------------------------------------------
+
+Below the portrait place a narrow horizontal strip inside the left column.
+
+Divide it into three labeled groups:
+
+“SKIN TONE”
+“EYE COLOR”
+“HAIR COLOR”
+
+Use small uppercase sans-serif labels with wide letter spacing.
+
+SKIN TONE:
+four circular color swatches ranging from
+light warm beige,
+peach beige,
+medium tan,
+warm caramel brown.
+
+EYE COLOR:
+four circular swatches ranging from
+dark olive brown,
+hazel,
+golden brown,
+deep warm brown.
+
+HAIR COLOR:
+three or four circular swatches ranging from
+dark brown,
+espresso,
+almost black.
+
+Separate the three groups with thin vertical divider lines.
+
+--------------------------------------------------
+RIGHT FEATURE ANALYSIS PANEL
+--------------------------------------------------
+
+At the top of the right column, place a centered small uppercase heading:
+
+“FEATURE ANALYSIS”
+
+Add a thin horizontal rule below it.
+
+Create six vertically stacked analysis rows of equal visual rhythm.
+
+Each row contains:
+
+LEFT:
+a tiny elegant line-art anatomical or beauty icon.
+
+CENTER:
+feature name in small uppercase sans-serif,
+percentage score aligned near the feature title,
+one short descriptive paragraph below.
+
+BOTTOM OF TEXT AREA:
+a slim horizontal progress bar,
+light beige track,
+muted camel-brown fill.
+
+RIGHT:
+a small rectangular photographic crop corresponding to that facial feature.
+
+All image crops have subtle rounded corners, approximately 4–6 px.
+
+Use the SAME WOMAN from the large portrait for every crop.
+
+--------------------------------------------------
+ROW 1
+--------------------------------------------------
+
+Icon:
+minimal front-facing face outline.
+
+Title:
+“FACIAL SYMMETRY”
+
+Score:
+“91%”
+
+Description:
+“Well-balanced symmetry
+with minor natural
+variations.”
+
+Progress bar:
+approximately 91% filled.
+
+Thumbnail:
+small frontal face crop.
+Add a subtle vertical center guideline across the face.
+
+--------------------------------------------------
+ROW 2
+--------------------------------------------------
+
+Icon:
+minimal proportion grid / golden-ratio-inspired line icon.
+
+Title:
+“PROPORTIONS”
+
+Score:
+“90%”
+
+Description:
+“Excellent facial
+proportions based on
+golden ratio.”
+
+Progress bar:
+approximately 90% filled.
+
+Thumbnail:
+frontal face crop with thin facial proportion grid lines.
+
+--------------------------------------------------
+ROW 3
+--------------------------------------------------
+
+Icon:
+minimal line-art eye.
+
+Title:
+“EYES”
+
+Score:
+“92%”
+
+Description:
+“Symmetrical shape,
+ideal spacing and
+bright expression.”
+
+Progress bar:
+approximately 92% filled.
+
+Thumbnail:
+tight crop of both eyes and eyebrows.
+
+--------------------------------------------------
+ROW 4
+--------------------------------------------------
+
+Icon:
+minimal line-art nose.
+
+Title:
+“NOSE”
+
+Score:
+“88%”
+
+Description:
+“Well-aligned,
+proportional length
+and natural shape.”
+
+Progress bar:
+approximately 88% filled.
+
+Thumbnail:
+tight frontal crop of the nose.
+
+--------------------------------------------------
+ROW 5
+--------------------------------------------------
+
+Icon:
+minimal line-art lips.
+
+Title:
+“LIPS”
+
+Score:
+“89%”
+
+Description:
+“Good volume,
+symmetry and
+natural contour.”
+
+Progress bar:
+approximately 89% filled.
+
+Thumbnail:
+tight crop of the lips and surrounding skin.
+
+--------------------------------------------------
+ROW 6
+--------------------------------------------------
+
+Icon:
+minimal face-shape / jawline outline.
+
+Title:
+“JAWLINE & FACE SHAPE”
+
+Score:
+“90%”
+
+Description:
+“Well-defined jawline
+and balanced face
+shape.”
+
+Progress bar:
+approximately 90% filled.
+
+Thumbnail:
+lower-face crop including lips, chin and jaw contour.
+Add extremely subtle jawline guide marks.
+
+--------------------------------------------------
+BOTTOM RESULTS SECTION
+--------------------------------------------------
+
+Below the main portrait and feature-analysis area, create one large horizontally oriented rounded rectangle spanning almost the full poster width.
+
+Divide this section vertically into two main halves with a very thin line.
+
+--------------------------------------------------
+BOTTOM LEFT — OVERALL SCORE
+--------------------------------------------------
+
+Centered heading in small uppercase tracking:
+
+“OVERALL ATTRACTIVENESS SCORE”
+
+Below it, display a very large elegant fashion-serif score:
+
+“8.8”
+
+To its right, much smaller:
+
+“/ 10”
+
+The number 8.8 should feel editorial, luxurious and graceful,
+using the same Didot/Bodoni-inspired serif as the title.
+
+Below it place five small champagne-gold stars.
+Four stars appear fully filled.
+The fifth appears partially filled / outlined.
+
+Below the stars place a small pale-beige pill-shaped badge:
+
+“CONFIDENCE LEVEL: HIGH”
+
+Include a tiny minimal signal / analytics icon beside the text.
+
+At the very bottom in tiny centered sans-serif text:
+
+“Score reflects overall facial harmony, symmetry,
+proportions, and feature balance.”
+
+--------------------------------------------------
+BOTTOM RIGHT — FACIAL FEATURE HARMONY
+--------------------------------------------------
+
+Small uppercase heading centered near the top:
+
+“FACIAL FEATURE HARMONY”
+
+On the left side of this panel place an elegant donut chart.
+
+DONUT CHART:
+cream and camel-brown ring,
+thin but clearly visible,
+minimal graphic styling.
+
+Inside the ring:
+small text:
+
+“AVERAGE
+FEATURE SCORE”
+
+Large center number:
+
+“89%”
+
+The donut chart should show approximately 89%.
+
+To the right create six small horizontal metric bars:
+
+Symmetry — 91%
+Proportions — 90%
+Eyes — 92%
+Nose — 88%
+Lips — 89%
+Jawline & Shape — 90%
+
+Each uses:
+tiny dark label on left,
+thin beige track,
+camel-brown fill,
+percentage aligned on far right.
+
+Keep generous vertical spacing.
+
+--------------------------------------------------
+BOTTOM BADGES
+--------------------------------------------------
+
+Along the lower edge of the right results panel, create four small refined outline badges.
+
+Each badge contains a tiny line icon plus uppercase text:
+
+“BALANCED”
+“HARMONIOUS”
+“NATURAL”
+“PHOTOGENIC”
+
+Icons:
+balanced face icon,
+small flower / harmony symbol,
+leaf,
+minimal camera.
+
+Use thin warm-gray outlines and pale ivory backgrounds.
+
+--------------------------------------------------
+FOOTER
+--------------------------------------------------
+
+At the bottom right corner in tiny elegant serif or sans-serif typography:
+
+“Analysis by AIAttractivenessTest.ai”
+
+Place one tiny four-point sparkle icon after the text.
+
+--------------------------------------------------
+TYPOGRAPHY
+--------------------------------------------------
+
+Main title and large score:
+Didot, Bodoni Moda, Cormorant Garamond, Canela or an equivalent luxury high-contrast serif.
+
+All labels and descriptions:
+Avenir, Helvetica Neue, Inter, Neue Haas Grotesk, or an equivalent clean modern sans-serif.
+
+Use:
+small uppercase labels,
+wide tracking,
+precise baseline alignment,
+very clean typesetting,
+luxury magazine hierarchy.
+
+No bold chunky fonts.
+No playful fonts.
+No futuristic fonts.
+
+--------------------------------------------------
+LAYOUT PRECISION
+--------------------------------------------------
+
+Maintain generous margins around the entire poster.
+Use approximately 14–18 px rounded corners on outer cards at 1024x1536 scale.
+Use 1 px warm gray border lines.
+Everything must be perfectly aligned to an invisible grid.
+
+The portrait should dominate visually.
+The information graphics should remain quiet and secondary.
+
+Aim for approximately:
+8% header,
+61% main portrait / feature analysis area,
+22% bottom results panel,
+remaining space for margins and footer.
+
+The composition must feel dense enough to contain useful information but never crowded.
+
+--------------------------------------------------
+IMAGE QUALITY
+--------------------------------------------------
+
+photorealistic,
+ultra-detailed editorial photography,
+luxury print design,
+precise infographic layout,
+realistic skin,
+professional typography,
+subtle paper texture,
+soft natural color grading,
+premium skincare branding,
+beauty magazine art direction,
+high-resolution,
+sharp text,
+crisp thin lines,
+perfect alignment,
+balanced whitespace,
+authentic human presence,
+restrained sophistication.

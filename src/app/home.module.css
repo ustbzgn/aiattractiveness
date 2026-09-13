@@ -1,0 +1,92 @@
+/* Home-only editorial skin. Shared routes and transactional dialogs retain their styles. */
+.home {
+  --home-ink: #292426;
+  --home-muted: #71696c;
+  --home-line: #e9e0df;
+  width: 100%;
+  padding-top: 72px;
+  padding-bottom: 64px;
+  background: linear-gradient(180deg, #faf7f5 0, #fdfbf9 870px, #fff 1180px);
+}
+.hero { max-width: 1040px; margin: 0 auto 38px; padding: 0 24px; text-align: center; }
+.eyebrow { display: flex; align-items: center; justify-content: center; gap: 16px; color: #9b5665; font-size: 10px; font-weight: 600; letter-spacing: .24em; margin-bottom: 24px; }
+.eyebrow span { width: 32px; height: 1px; background: #d8b4bc; }
+.hero h1 { color: var(--home-ink); font-size: clamp(36px, 4.5vw, 64px); font-weight: 600; line-height: 1.14; letter-spacing: -.045em; text-wrap: balance; margin: 0 auto 24px; }
+.hero h1 em { display: block; color: #b25368; font-weight: 600; font-size: .86em; margin-top: 8px; }
+.hero > p { max-width: 590px; margin: auto; font-size: 15px; line-height: 1.85; color: var(--home-muted); text-wrap: pretty; }
+.heroNote { margin-top: 18px; font-family: Georgia, serif; font-style: italic; color: #807377; font-size: 14px; }
+.uploadPanel { position: relative; isolation: isolate; width: calc(100% - 40px); max-width: 760px; margin: 0 auto 104px; padding: 26px 32px 28px; border: 1px solid var(--home-line); border-radius: 20px; background: #fff; box-shadow: 0 16px 50px -28px #76565e45; scroll-margin-top: 110px; overflow: hidden; }
+.panelHeading { display: flex; justify-content: space-between; gap: 12px; font-size: 9px; letter-spacing: .16em; color: #85777d; margin-bottom: 20px; }
+.uploadPanel :global(.tabs-container) { max-width: none; padding: 5px; gap: 4px; background: #f6f2f1; border: 0; margin-bottom: 22px; }
+.uploadPanel :global(.tab-btn) { min-height: 43px; padding: 10px 8px; }
+.uploadPanel :global(.tab-btn.active) { background: #b95068; color: #fff; box-shadow: 0 3px 8px #99516524; }
+.uploadPanel :global(.viewfinder-dropzone) { border-color: #d8c9cb; background: #fdfbf9; border-radius: 12px; padding: 34px 20px; }
+.uploadPanel :global(.viewfinder-dropzone:hover) { background: #fcf5f5; box-shadow: 0 0 0 3px #f6e8eb; }
+.uploadPanel :global(.viewfinder-corner) { color: #bc7f8c; opacity: .55; width: 11px; height: 11px; }
+.uploadPanel h4 { font-family: var(--font-playfair), Georgia, serif; font-size: 22px; font-weight: 600; margin: 14px 0 8px; }
+.uploadPanel :global(.btn-rose) { min-width: 270px; background: #b95068; border: 0; box-shadow: 0 4px 12px #a9556820; font-size: 14px; font-weight: 600; padding: 14px 24px; }
+.uploadPanel :global(.btn-rose:hover:not(:disabled)) { background: #9f4056; }
+.showcase, .editorial, .closing { max-width: 1160px; margin: 0 auto 112px; padding: 0 40px; }
+.showcase h2, .editorial h2, .closing h2, .faq h2 { font-size: clamp(29px, 3vw, 43px); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; text-wrap: balance; max-width: 850px; margin-left: auto; margin-right: auto; }
+.showcase p, .editorial p { font-size: 14px; line-height: 1.85; color: var(--home-muted); text-wrap: pretty; }
+.showcase > div:first-child { margin-bottom: 40px; }
+.showcase > :global(.card-panel) { padding: 18px; border-radius: 8px; box-shadow: 0 8px 32px -24px #38252845; background: #f8f4ef; border-color: #e8dfd5; }
+.showcase > :global(.card-panel) > div:first-child { border-radius: 4px; box-shadow: none; }
+.measure { position: relative; overflow: hidden; margin: 0 0 112px; padding: 104px 24px; background: #292125; }
+.measure > div:last-child { max-width: 800px; }
+.measure h2 { font-size: clamp(32px, 3.4vw, 48px); font-weight: 600; line-height: 1.2; letter-spacing: -.03em; color: #fff; }
+.measure p { font-size: 14px; line-height: 1.95; color: #f4eeef; }
+.editorial > div:first-child { margin-bottom: 48px; }
+.editorial :global(.card-panel) { border: 0; border-top: 1px solid var(--home-line); border-radius: 0; box-shadow: none; padding: 32px 24px; align-items: flex-start; text-align: left; background: transparent; }
+.editorial h3 { font-size: 24px; font-weight: 600; line-height: 1.35; }
+.editorial h4 { font-family: var(--font-playfair), Georgia, serif; font-size: 20px; font-weight: 600; line-height: 1.45; }
+.editorial :global(.shadow-xl) { border-radius: 8px; box-shadow: none; border-color: var(--home-line); }
+.editorial button, .measure button { background: #b95068; font-size: 13px; font-weight: 600; padding: 14px 26px; box-shadow: none; }
+.editorial button:hover, .measure button:hover { background: #9f4056; transform: translateY(-1px); }
+.closing > :global(.card-panel) { padding: 64px 24px; border-radius: 4px; border: 1px solid #eadcdf; background: #f8f0ef; box-shadow: none; }
+.closing > div > div { max-width: 680px; }
+.closing button { background: #b95068; border-radius: 100px; box-shadow: none; font-size: 14px; font-weight: 600; }
+.faq { max-width: 860px; margin: 0 auto; padding: 0 32px; }
+.faq > div:first-child { margin-bottom: 36px; }
+.faq > div:last-child { gap: 0; border-top: 1px solid var(--home-line); }
+.faq :global(.card-panel) { border: 0; border-bottom: 1px solid var(--home-line); border-radius: 0; box-shadow: none !important; }
+.faq button { padding: 22px 8px; }
+.faq button span { font-size: 14px; font-weight: 500; }
+@media (max-width: 640px) {
+  .home { padding-top: 42px; padding-bottom: 44px; }
+  .hero { padding: 0 22px; margin-bottom: 28px; }
+  .eyebrow { font-size: 8px; letter-spacing: .18em; gap: 10px; margin-bottom: 20px; }
+  .eyebrow span { width: 20px; }
+  .hero h1 { font-size: 36px; }
+  .hero > p { font-size: 13px; line-height: 1.8; }
+  .heroNote { font-size: 12px; }
+  .uploadPanel { width: calc(100% - 28px); padding: 20px 16px; border-radius: 16px; margin-bottom: 68px; }
+  .panelHeading { font-size: 8px; letter-spacing: .1em; }
+  .uploadPanel :global(.tab-btn) span { gap: 4px; font-size: 10px; white-space: nowrap; }
+  .uploadPanel :global(.tab-btn) svg { width: 12px; }
+  .uploadPanel :global(.viewfinder-dropzone) { padding: 28px 14px; }
+  .uploadPanel h4 { font-size: 20px; }
+  .uploadPanel :global(.btn-rose) { min-width: 0; width: 100%; }
+  .showcase, .editorial, .closing { padding: 0 22px; margin-bottom: 68px; }
+  .showcase > :global(.card-panel) { padding: 8px; }
+  .editorial > div:first-child { margin-bottom: 30px; }
+  .editorial :global(.card-panel) { padding: 24px 8px; }
+  .measure { padding: 64px 20px; margin-bottom: 68px; }
+  .measure > div:last-child { padding: 0; }
+  .measure p { font-size: 13px; line-height: 1.85; }
+  .closing > :global(.card-panel) { padding: 40px 18px; }
+  .faq { padding: 0 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home *, .home *::before, .home *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+/* Original generated assets: show the complete reports and editorial collages. */
+.reportCrop { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+.reportCrop img, .tipsCrop img, .improvementCrop img { display: block; width: 100%; height: auto; }
+.tipsCrop, .improvementCrop { overflow: hidden; border-radius: 6px; }
+.measureImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.measureOverlay { position: absolute; inset: 0; background: rgba(30, 22, 26, .66); }
+.measureLabel { position: relative; z-index: 1; text-align: center; color: #f0c8d1; font-size: 10px; letter-spacing: .25em; margin-bottom: 26px; }
+@media (max-width: 640px) {
+  .reportCrop { grid-template-columns: 1fr; gap: 16px; }
+}

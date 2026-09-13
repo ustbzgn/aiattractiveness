@@ -3,10 +3,13 @@ import { headers, cookies } from 'next/headers';
 import { auth } from '@/lib/auth';
 import {
   analyzePortraitWithDeepSeek,
+  analyzePortraitDeepWithDeepSeek,
   comparePortraitsWithDeepSeek,
   PortraitAnalysisResult,
   PortraitComparisonResult,
 } from '@/lib/ai/deepseek';
+import { normalizePortraitImage } from '@/lib/ai/portrait-crop';
+import { DeepScanReport, DEEP_SCAN_FIXTURES } from '@/lib/types/deep-scan';
 import {
   deductCredits,
   refundCredits,
@@ -27,9 +30,9 @@ const MAX_GUEST_FAST_TRIALS = 2;
 const GUEST_TRIAL_COOKIE_NAME = 'aat_guest_trials';
 
 /**
- * Helper to convert a File object from FormData into base64 string
+ * Helper to convert a File object from FormData into Buffer and mimeType
  */
-async function fileToBase64(file: File): Promise<{ base64: string; mimeType: string }> {
+async function fileToBuffer(file: File): Promise<{ buffer: Buffer; mimeType: string }> {
   if (file.size > MAX_FILE_SIZE) {
     throw new Error(`File ${file.name} exceeds maximum allowed size of 10MB`);
   }
@@ -41,9 +44,7 @@ async function fileToBase64(file: File): Promise<{ base64: string; mimeType: str
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
-  const base64 = buffer.toString('base64');
-
-  return { base64, mimeType };
+  return { buffer, mimeType };
 }
 
 export async function POST(req: NextRequest) {
@@ -58,6 +59,19 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const mode = (formData.get('mode') as string) || 'fast'; // 'fast' | 'deep' | 'compare'
+    const previewFixture = formData.get('previewFixture') as string | null;
+
+    // DEV/TESTING PREVIEW HOOK: if dev requested a fixture, return immediately without debit
+    if (process.env.NODE_ENV !== 'production' && previewFixture && previewFixture in DEEP_SCAN_FIXTURES) {
+      const fixtureKey = previewFixture as keyof typeof DEEP_SCAN_FIXTURES;
+      return NextResponse.json({
+        success: true,
+        mode: 'deep',
+        isDevPreview: true,
+        creditsDeducted: 0,
+        data: DEEP_SCAN_FIXTURES[fixtureKey],
+      });
+    }
 
     // Cost definition: Fast: 10 credits ($0.50), Deep: 40 credits ($2.00), Compare: 50 credits ($2.50)
     const creditsCost = mode === 'fast' ? 10 : mode === 'deep' ? 40 : 50;
@@ -83,7 +97,8 @@ export async function POST(req: NextRequest) {
             );
           }
 
-          const { base64, mimeType } = await fileToBase64(file);
+          const { buffer, mimeType } = await fileToBuffer(file);
+          const base64 = buffer.toString('base64');
           const analysis: PortraitAnalysisResult = await analyzePortraitWithDeepSeek(
             base64,
             mimeType,
@@ -163,12 +178,12 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const photoA = await fileToBase64(fileA);
-        const photoB = await fileToBase64(fileB);
+        const { buffer: bufA, mimeType: mimeA } = await fileToBuffer(fileA);
+        const { buffer: bufB, mimeType: mimeB } = await fileToBuffer(fileB);
 
         const comparison: PortraitComparisonResult = await comparePortraitsWithDeepSeek(
-          photoA,
-          photoB
+          { base64: bufA.toString('base64'), mimeType: mimeA },
+          { base64: bufB.toString('base64'), mimeType: mimeB }
         );
 
         return NextResponse.json({
@@ -178,7 +193,50 @@ export async function POST(req: NextRequest) {
           balanceRemaining: debitResult.balanceRemaining,
           data: comparison,
         });
+      } else if (mode === 'deep') {
+        // Deep Scan 6-dimension evaluation + 5-region real pixel cropping
+        const file = (formData.get('photo') || formData.get('file')) as File | null;
+
+        if (!file) {
+          await refundCredits(targetUserId, creditsCost, referenceId, 'Missing photo file');
+          return NextResponse.json(
+            { error: 'A portrait photo is required for deep analysis.' },
+            { status: 400 }
+          );
+        }
+
+        const { buffer: rawBuffer } = await fileToBuffer(file);
+
+        // Normalize image (EXIF auto-orientation, max 1600px edge, high-quality buffer)
+        const normalized = await normalizePortraitImage(rawBuffer);
+
+        const deepReport: DeepScanReport = await analyzePortraitDeepWithDeepSeek(
+          normalized.buffer,
+          normalized.buffer.toString('base64'),
+          normalized.mimeType
+        );
+
+        // If not analyzable, auto refund credits
+        if (!deepReport.isAnalyzable) {
+          await refundCredits(
+            targetUserId,
+            creditsCost,
+            referenceId,
+            `Refund: ${deepReport.unusableReason || 'Photo not analyzable'}`
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          mode: 'deep',
+          creditsDeducted: deepReport.isAnalyzable ? creditsCost : 0,
+          balanceRemaining: deepReport.isAnalyzable
+            ? debitResult.balanceRemaining
+            : debitResult.balanceRemaining + creditsCost,
+          data: deepReport,
+        });
       } else {
+        // Fast Scan Mode
         const file = (formData.get('photo') || formData.get('file')) as File | null;
 
         if (!file) {
@@ -189,16 +247,16 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const { base64, mimeType } = await fileToBase64(file);
+        const { buffer, mimeType } = await fileToBuffer(file);
         const analysis: PortraitAnalysisResult = await analyzePortraitWithDeepSeek(
-          base64,
+          buffer.toString('base64'),
           mimeType,
-          mode === 'deep' ? 'deep' : 'fast'
+          'fast'
         );
 
         return NextResponse.json({
           success: true,
-          mode,
+          mode: 'fast',
           creditsDeducted: creditsCost,
           balanceRemaining: debitResult.balanceRemaining,
           data: analysis,
