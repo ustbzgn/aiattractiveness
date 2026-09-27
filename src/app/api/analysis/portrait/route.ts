@@ -1,3 +1,5 @@
+import { generateDeepScanPoster } from '@/lib/ai/deep-scan-poster';
+import { generateComparePoster } from '@/lib/ai/compare-poster';
 import { NextRequest, NextResponse } from 'next/server';
 import { headers, cookies } from 'next/headers';
 import { auth } from '@/lib/auth';
@@ -20,6 +22,7 @@ import { getOrCreateCurrentUserId } from '@/lib/auth/guest';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 420;
 
 // Maximum upload payload size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -178,13 +181,20 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        const { buffer: bufA, mimeType: mimeA } = await fileToBuffer(fileA);
-        const { buffer: bufB, mimeType: mimeB } = await fileToBuffer(fileB);
+        const { buffer: bufA } = await fileToBuffer(fileA);
+        const { buffer: bufB } = await fileToBuffer(fileB);
 
-        const comparison: PortraitComparisonResult = await comparePortraitsWithDeepSeek(
-          { base64: bufA.toString('base64'), mimeType: mimeA },
-          { base64: bufB.toString('base64'), mimeType: mimeB }
+        // Normalize both images (EXIF auto-orientation, max 1600px edge, high-quality buffer)
+        const normalizedA = await normalizePortraitImage(bufA);
+        const normalizedB = await normalizePortraitImage(bufB);
+
+        let comparison: PortraitComparisonResult = await comparePortraitsWithDeepSeek(
+          { base64: normalizedA.buffer.toString('base64'), mimeType: normalizedA.mimeType },
+          { base64: normalizedB.buffer.toString('base64'), mimeType: normalizedB.mimeType }
         );
+
+        // Generate luxury side-by-side comparison poster
+        comparison = await generateComparePoster(comparison, normalizedA, normalizedB);
 
         return NextResponse.json({
           success: true,
@@ -194,7 +204,7 @@ export async function POST(req: NextRequest) {
           data: comparison,
         });
       } else if (mode === 'deep') {
-        // Deep Scan 6-dimension evaluation + 5-region real pixel cropping
+        // Deep Scan: VLM assessment followed by an Official-channel generated poster
         const file = (formData.get('photo') || formData.get('file')) as File | null;
 
         if (!file) {
@@ -210,11 +220,16 @@ export async function POST(req: NextRequest) {
         // Normalize image (EXIF auto-orientation, max 1600px edge, high-quality buffer)
         const normalized = await normalizePortraitImage(rawBuffer);
 
-        const deepReport: DeepScanReport = await analyzePortraitDeepWithDeepSeek(
+        let deepReport: DeepScanReport = await analyzePortraitDeepWithDeepSeek(
           normalized.buffer,
           normalized.buffer.toString('base64'),
-          normalized.mimeType
+          normalized.mimeType,
+          { cropRegions: false }
         );
+
+        if (deepReport.isAnalyzable) {
+          deepReport = await generateDeepScanPoster(deepReport, normalized);
+        }
 
         // If not analyzable, auto refund credits
         if (!deepReport.isAnalyzable) {

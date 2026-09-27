@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Camera,
@@ -40,7 +40,9 @@ import type {
   PortraitComparisonResult,
 } from '@/lib/ai/deepseek';
 import { DeepScanReport, DEEP_SCAN_FIXTURES } from '@/lib/types/deep-scan';
+import { FastScanReport } from '@/components/analysis/FastScanReport';
 import { DeepScanReportView } from '@/components/analysis/DeepScanReportView';
+import { GeneratedCompareReport } from '@/components/analysis/GeneratedCompareReport';
 
 type TabType = 'fast' | 'deep' | 'compare';
 
@@ -69,6 +71,8 @@ export default function HomePage() {
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [scanStageText, setScanStageText] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<PortraitAnalysisResult | null>(null);
+  const [fastReportPhoto, setFastReportPhoto] = useState<string | null>(null);
+  useEffect(() => () => { if (fastReportPhoto) URL.revokeObjectURL(fastReportPhoto); }, [fastReportPhoto]);
   const [deepScanResult, setDeepScanResult] = useState<DeepScanReport | null>(null);
   const [comparisonResult, setComparisonResult] = useState<PortraitComparisonResult | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -315,6 +319,7 @@ export default function HomePage() {
         setDeepScanResult(json.data as DeepScanReport);
       } else {
         setAnalysisResult(json.data as PortraitAnalysisResult);
+        setFastReportPhoto(singleFile ? URL.createObjectURL(singleFile) : null);
       }
 
       // Broadcast event so Navbar updates credit counter instantly
@@ -680,7 +685,13 @@ export default function HomePage() {
             ) : isAnalyzing ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                <span>Analyzing Portrait...</span>
+                <span>
+                  {activeTab === 'deep'
+                    ? 'Creating your report — this may take a few minutes...'
+                    : activeTab === 'compare'
+                    ? 'Creating your comparison poster — this may take a few minutes...'
+                    : 'Analyzing Portrait...'}
+                </span>
               </>
             ) : (
               <>
@@ -730,7 +741,15 @@ export default function HomePage() {
 
       {/* Analysis Result (Rendered only after analysis is performed) */}
       {(comparisonResult || analysisResult || deepScanResult) && (
-        <section ref={reportSectionRef} className="card-panel p-6 sm:p-8 mb-12 relative overflow-hidden">
+        <section
+          ref={reportSectionRef}
+          className={
+            (analysisResult && !deepScanResult && !comparisonResult) ||
+            Boolean(comparisonResult?.generatedPoster)
+              ? "w-full max-w-[1000px] mx-auto mb-12 relative"
+              : "card-panel p-6 sm:p-8 mb-12 relative overflow-hidden"
+          }
+        >
           {deepScanResult ? (
             /* Deep Scan 6-Dimension Diagnostics Report View */
             <DeepScanReportView
@@ -744,183 +763,131 @@ export default function HomePage() {
               onSelectFixture={(f) => setDeepScanResult(f)}
             />
           ) : comparisonResult ? (
-            /* Side-by-Side Comparison Live Result View */
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-bold tracking-wider uppercase bg-[#fdf2f4] text-[#e05670] px-3 py-1 rounded-md border border-[#f5d0d8] flex items-center gap-1.5">
-                    <Trophy size={14} />
-                    <span>Winner: {comparisonResult.winner}</span>
-                  </span>
-                  <span className="text-xs sm:text-sm text-[#8a8486] font-medium">
-                    Studio Side-by-Side Verdict
-                  </span>
+            comparisonResult.generatedPoster ? (
+              /* Generated Luxury Editorial Battle Poster */
+              <GeneratedCompareReport
+                imageUrl={comparisonResult.generatedPoster.imageUrl}
+                comparison={comparisonResult}
+                onReset={() => {
+                  setComparisonResult(null);
+                  setCompareFileA(null);
+                  setCompareFileB(null);
+                  setComparePreviewA(null);
+                  setComparePreviewB(null);
+                }}
+              />
+            ) : (
+              /* Fallback Text Side-by-Side Comparison Live Result View */
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xs font-bold tracking-wider uppercase bg-[#fdf2f4] text-[#e05670] px-3 py-1 rounded-md border border-[#f5d0d8] flex items-center gap-1.5">
+                      <Trophy size={14} />
+                      <span>Winner: {comparisonResult.winner}</span>
+                    </span>
+                    <span className="text-xs sm:text-sm text-[#8a8486] font-medium">
+                      Studio Side-by-Side Verdict
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Overall Verdict Banner */}
-              <div className="p-5 bg-[#faf8f9] rounded-2xl border border-[#f0e6e8] mb-7">
-                <h4 className="text-sm font-bold text-[#1f1d1e] mb-2 flex items-center gap-2">
-                  <Award size={18} className="text-[#e05670]" />
-                  <span>Overall Assessment</span>
-                </h4>
-                <p className="text-sm text-[#575254] leading-relaxed mb-4">
-                  {comparisonResult.overallAssessment}
-                </p>
-                <div className="p-3.5 bg-white rounded-xl border border-[#f0e6e8]">
-                  <strong className="text-xs font-bold text-[#e05670] block mb-1">
-                    Recommendation for Profile Use:
-                  </strong>
-                  <p className="text-xs sm:text-sm text-[#1f1d1e]">
-                    {comparisonResult.verdictRecommendation}
+                {/* Overall Verdict Banner */}
+                <div className="p-5 bg-[#faf8f9] rounded-2xl border border-[#f0e6e8] mb-7">
+                  <h4 className="text-sm font-bold text-[#1f1d1e] mb-2 flex items-center gap-2">
+                    <Award size={18} className="text-[#e05670]" />
+                    <span>Overall Assessment</span>
+                  </h4>
+                  <p className="text-sm text-[#575254] leading-relaxed mb-4">
+                    {comparisonResult.overallAssessment}
                   </p>
+                  <div className="p-3.5 bg-white rounded-xl border border-[#f0e6e8]">
+                    <strong className="text-xs font-bold text-[#e05670] block mb-1">
+                      Recommendation for Profile Use:
+                    </strong>
+                    <p className="text-xs sm:text-sm text-[#1f1d1e]">
+                      {comparisonResult.verdictRecommendation}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Photo A vs Photo B Side by Side Breakdown */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Photo A Card */}
-                <div className="p-5 rounded-2xl bg-white border border-[#f0e6e8]">
-                  <div className="flex items-center justify-between mb-3 border-b border-[#f0e6e8] pb-3">
-                    <h5 className="font-bold text-[#1f1d1e] text-base">Photo A (Baseline)</h5>
-                    <span className="text-lg font-extrabold text-[#e05670]">
-                      {comparisonResult.photoA.score}
-                    </span>
-                  </div>
-                  <div className="mb-4">
-                    <span className="text-xs font-bold text-[#166534] block mb-1.5">Strengths:</span>
-                    <ul className="text-xs sm:text-sm text-[#575254] space-y-1">
-                      {comparisonResult.photoA.strengths.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5">
-                          <span className="text-[#16a34a] font-bold">✓</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {comparisonResult.photoA.weaknesses.length > 0 && (
-                    <div>
-                      <span className="text-xs font-bold text-[#991b1b] block mb-1.5">
-                        Areas for Improvement:
+                {/* Photo A vs Photo B Side by Side Breakdown */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Photo A Card */}
+                  <div className="p-5 rounded-2xl bg-white border border-[#f0e6e8]">
+                    <div className="flex items-center justify-between mb-3 border-b border-[#f0e6e8] pb-3">
+                      <h5 className="font-bold text-[#1f1d1e] text-base">Photo A (Baseline)</h5>
+                      <span className="text-lg font-extrabold text-[#e05670]">
+                        {comparisonResult.photoA.score}
                       </span>
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-xs font-bold text-[#166534] block mb-1.5">Strengths:</span>
                       <ul className="text-xs sm:text-sm text-[#575254] space-y-1">
-                        {comparisonResult.photoA.weaknesses.map((item, idx) => (
+                        {comparisonResult.photoA.strengths.map((item, idx) => (
                           <li key={idx} className="flex items-start gap-1.5">
-                            <span className="text-[#dc2626] font-bold">•</span>
+                            <span className="text-[#16a34a] font-bold">✓</span>
                             <span>{item}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                  )}
-                </div>
+                    {comparisonResult.photoA.weaknesses.length > 0 && (
+                      <div>
+                        <span className="text-xs font-bold text-[#991b1b] block mb-1.5">
+                          Areas for Improvement:
+                        </span>
+                        <ul className="text-xs sm:text-sm text-[#575254] space-y-1">
+                          {comparisonResult.photoA.weaknesses.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <span className="text-[#dc2626] font-bold">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
 
-                {/* Photo B Card */}
-                <div className="p-5 rounded-2xl bg-white border border-[#f0e6e8]">
-                  <div className="flex items-center justify-between mb-3 border-b border-[#f0e6e8] pb-3">
-                    <h5 className="font-bold text-[#1f1d1e] text-base">Photo B (Alternative)</h5>
-                    <span className="text-lg font-extrabold text-[#e05670]">
-                      {comparisonResult.photoB.score}
-                    </span>
-                  </div>
-                  <div className="mb-4">
-                    <span className="text-xs font-bold text-[#166534] block mb-1.5">Strengths:</span>
-                    <ul className="text-xs sm:text-sm text-[#575254] space-y-1">
-                      {comparisonResult.photoB.strengths.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5">
-                          <span className="text-[#16a34a] font-bold">✓</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {comparisonResult.photoB.weaknesses.length > 0 && (
-                    <div>
-                      <span className="text-xs font-bold text-[#991b1b] block mb-1.5">
-                        Areas for Improvement:
+                  {/* Photo B Card */}
+                  <div className="p-5 rounded-2xl bg-white border border-[#f0e6e8]">
+                    <div className="flex items-center justify-between mb-3 border-b border-[#f0e6e8] pb-3">
+                      <h5 className="font-bold text-[#1f1d1e] text-base">Photo B (Alternative)</h5>
+                      <span className="text-lg font-extrabold text-[#e05670]">
+                        {comparisonResult.photoB.score}
                       </span>
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-xs font-bold text-[#166534] block mb-1.5">Strengths:</span>
                       <ul className="text-xs sm:text-sm text-[#575254] space-y-1">
-                        {comparisonResult.photoB.weaknesses.map((item, idx) => (
+                        {comparisonResult.photoB.strengths.map((item, idx) => (
                           <li key={idx} className="flex items-start gap-1.5">
-                            <span className="text-[#dc2626] font-bold">•</span>
+                            <span className="text-[#16a34a] font-bold">✓</span>
                             <span>{item}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                  )}
+                    {comparisonResult.photoB.weaknesses.length > 0 && (
+                      <div>
+                        <span className="text-xs font-bold text-[#991b1b] block mb-1.5">
+                          Areas for Improvement:
+                        </span>
+                        <ul className="text-xs sm:text-sm text-[#575254] space-y-1">
+                          {comparisonResult.photoB.weaknesses.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <span className="text-[#dc2626] font-bold">•</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )
           ) : analysisResult ? (
-            /* Single Portrait Live Result View */
-            <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-bold tracking-wider uppercase bg-[#fdf2f4] text-[#e05670] px-3 py-1 rounded-md border border-[#f5d0d8] flex items-center gap-1.5">
-                    <CheckCircle2 size={14} />
-                    <span>Evaluation Completed</span>
-                  </span>
-                  <span className="text-xs sm:text-sm text-[#8a8486] font-medium">
-                    Studio Portrait Assessment
-                  </span>
-                </div>
-              </div>
-
-              {/* Overall Score Highlight */}
-              <div className="flex flex-col items-center justify-center py-7 px-6 bg-white rounded-2xl border border-[#f0e6e8] text-center mb-7 shadow-xs">
-                <span className="text-5xl sm:text-6xl font-extrabold text-[#e05670] leading-none tracking-tight">
-                  {analysisResult.overallScore}
-                </span>
-                <span className="text-sm sm:text-base font-bold text-[#1f1d1e] mt-2">
-                  {analysisResult.scoreLabel}
-                </span>
-              </div>
-
-              {/* Metric breakdown cards */}
-              <h3 className="text-lg font-bold mb-4 text-[#1f1d1e]">
-                Portrait Dimensions Evaluated
-              </h3>
-              <div className="metric-grid mb-7">
-                {analysisResult.metrics.map((metric, idx) => (
-                  <div key={idx} className="result-stat-card">
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-sm font-bold text-[#1f1d1e]">{metric.name}</span>
-                      <span className="text-sm font-extrabold text-[#e05670]">{metric.score}</span>
-                    </div>
-                    <p className="text-xs text-[#575254] leading-relaxed">{metric.note}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Narrative feedback summary */}
-              <div className="border-t border-[#f0e6e8] pt-5 mb-6">
-                <h4 className="text-sm font-bold text-[#1f1d1e] mb-1.5">
-                  {analysisResult.summaryHeading}
-                </h4>
-                <p className="text-sm text-[#575254] leading-relaxed">
-                  {analysisResult.summaryText}
-                </p>
-              </div>
-
-              {/* Recommendations */}
-              {analysisResult.recommendations?.length > 0 && (
-                <div className="p-4 bg-[#faf8f9] rounded-xl border border-[#f0e6e8]">
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-[#e05670] mb-2 flex items-center gap-1.5">
-                    <Lightbulb size={14} />
-                    <span>Actionable Photography Tips</span>
-                  </h5>
-                  <ul className="space-y-1.5">
-                    {analysisResult.recommendations.map((tip, i) => (
-                      <li key={i} className="text-xs sm:text-sm text-[#575254] flex items-start gap-2">
-                        <span className="text-[#e05670] font-bold">•</span>
-                        <span>{tip}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+            <FastScanReport report={analysisResult} photoUrl={fastReportPhoto} />
           ) : null}
         </section>
       )}

@@ -16,6 +16,7 @@ import {
   exportShareCardPng,
   downloadBlob,
 } from '@/lib/export/report-exporter';
+import { GeneratedDeepScanReport } from './GeneratedDeepScanReport';
 import { DeepScanEditorialPoster } from '@/components/analysis/DeepScanEditorialPoster';
 
 interface DeepScanReportViewProps {
@@ -70,6 +71,10 @@ export function DeepScanReportView({
     setReport(fixture);
     onSelectFixture?.(fixture);
   };
+
+  if (initialReport.generatedPoster) {
+    return <GeneratedDeepScanReport imageUrl={initialReport.generatedPoster.imageUrl} onReset={onReset} />;
+  }
 
   // If image fell below analysis threshold
   if (!report.isAnalyzable) {

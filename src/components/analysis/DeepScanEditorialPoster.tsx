@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import styles from './DeepScanEditorialPoster.module.css';
 import {
   Camera,
   Award,
@@ -13,7 +14,7 @@ import { DeepScanReport } from '@/lib/types/deep-scan';
 interface DeepScanEditorialPosterProps {
   report: DeepScanReport;
   /**
-   * 'fixed-1200' is the 1200x1800 fixed-dimension layout used for pristine 1:1 PNG export.
+   * 'fixed-1200' is the 1200px-wide editorial layout with content-driven height for PNG export.
    * 'responsive' is the responsive layout that adapts to screens.
    */
   variant?: 'fixed-1200' | 'responsive';
@@ -28,6 +29,57 @@ export function DeepScanEditorialPoster({
   id,
 }: DeepScanEditorialPosterProps) {
   const isFixed = variant === 'fixed-1200';
+  const gridRef = useRef<HTMLDivElement>(null);
+  const portraitRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [leaders, setLeaders] = useState<Array<{ id: string; path: string; x: number; y: number; endX: number; endY: number }>>([]);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    const portrait = portraitRef.current;
+    const image = imageRef.current;
+    if (!grid || !portrait || !image) { setLeaders([]); return; }
+    const update = () => {
+      const bounds = grid.getBoundingClientRect();
+      const photo = portrait.getBoundingClientRect();
+      if (!image.naturalWidth || !image.naturalHeight) return;
+      // Match the displayed object-cover image, including cropped edge offsets.
+      const scale = Math.max(photo.width / image.naturalWidth, photo.height / image.naturalHeight);
+      const width = image.naturalWidth * scale;
+      const height = image.naturalHeight * scale;
+      const next: typeof leaders = [];
+      report.metrics.forEach((metric) => {
+        const row = rowRefs.current[metric.id];
+        const box = report.rawNormalizedBoxes?.[metric.cropKey];
+        if (!row || !box) return;
+        const target = row.getBoundingClientRect();
+        // Stacked mobile layout has no cross-column leaders.
+        if (target.left < photo.right) return;
+        const anchorX = box.x + box.width * (metric.cropKey === 'face' ? .8 : .65);
+        const anchorY = box.y + box.height * (metric.id === 'facial_symmetry' ? .25 : .55);
+        const localX = anchorX * width - (width - photo.width) / 2;
+        const localY = anchorY * height - (height - photo.height) / 2;
+        if (localX < 0 || localX > photo.width || localY < 0 || localY > photo.height) return;
+        const x = photo.left - bounds.left + localX;
+        const y = photo.top - bounds.top + localY;
+        const endX = target.left - bounds.left;
+        const endY = target.top - bounds.top + target.height / 2;
+        const elbowX = endX - 24;
+        next.push({ id: metric.id, x, y, endX, endY,
+          path: `M ${x} ${y} L ${elbowX - 12} ${endY} Q ${elbowX} ${endY} ${elbowX + 6} ${endY} L ${endX} ${endY}` });
+      });
+      setLeaders(next);
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(grid);
+    observer.observe(portrait);
+    Object.values(rowRefs.current).forEach(row => { if (row) observer.observe(row); });
+    image.addEventListener('load', update);
+    update();
+    return () => { observer.disconnect(); image.removeEventListener('load', update); };
+  }, [report, variant]);
+
 
   const palette = report.palette || {
     skinTone: ['#f7e1d7', '#eecaba', '#dcb59c', '#b88667', '#915d3e'],
@@ -37,20 +89,6 @@ export function DeepScanEditorialPoster({
 
   const avgPercentage = report.averagePercentage || Math.round(report.overallScore * 10);
   const scoreDisplay = report.overallScore.toFixed(2);
-
-  // SVG 4-point star accent
-  const FourPointStar = ({ size = 16, color = '#b95068' }: { size?: number; color?: string }) => (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={color}
-      xmlns="http://www.w3.org/2000/svg"
-      className="shrink-0"
-    >
-      <path d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z" />
-    </svg>
-  );
 
   // 5-point star for rating
   const FivePointStar = ({ size = 18 }: { size?: number }) => (
@@ -95,15 +133,15 @@ export function DeepScanEditorialPoster({
       case 'nose':
         return (
           <svg className="w-5 h-5 text-[#b95068]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-            <path d="M12 4v11c0 1.2-1 2-2 2s-2-.8-2-2" />
-            <path d="M10 17c1 1 3 1 4 0 1 1 3 1 4 0" />
+            <path d="M9 2c0 6-1.5 9-4 13-1.7 3 .2 6 3 5M15 2c0 6 1.5 9 4 13 1.7 3-.2 6-3 5" />
+            <path d="M7 18c1-2 3-1 3 1 0 2 4 2 4 0 0-2 2-3 3-1" />
           </svg>
         );
       case 'lips':
         return (
           <svg className="w-5 h-5 text-[#b95068]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-            <path d="M4 12c2.5-3 5.5-2 8-1 2.5-1 5.5-2 8 1-2.5 4-5 5-8 5s-5.5-1-8-5Z" />
-            <path d="M7 12c2.5 1 4 1.5 5 1.5s2.5-.5 5-1.5" />
+            <path d="M2 12c3-2 5-6 8-5l2 1 2-1c3-1 5 3 8 5-3 2-5 7-10 7S5 14 2 12Z" />
+            <path d="M2 12c4-1 7-1 10 0 3-1 6-1 10 0M7 14c3 1 7 1 10 0" />
           </svg>
         );
       case 'jawline_face_shape':
@@ -121,29 +159,29 @@ export function DeepScanEditorialPoster({
     <div
       id={id}
       style={isFixed ? { width: '1200px', minWidth: '1200px', maxWidth: '1200px', boxSizing: 'border-box' } : undefined}
-      className={`relative bg-[#fcf9f6] text-[#2c2627] rounded-3xl border border-[#ded5cb] shadow-xl overflow-hidden font-sans ${
+      className={`${styles.poster} ${isFixed ? styles.fixed : styles.responsive} relative bg-[#fcf9f6] text-[#2c2627] rounded-3xl border border-[#ded5cb] shadow-xl overflow-hidden font-sans ${
         isFixed ? 'p-12' : 'p-6 sm:p-10'
       } ${className}`}
     >
       {/* Subtle Luxury Linen Poster Inner Border Ring */}
       <div
-        className={`pointer-events-none absolute rounded-2xl border border-[#ded5cb]/70 ${
+        className={`${styles.innerBorder} pointer-events-none absolute rounded-2xl border border-[#ded5cb]/70 ${
           isFixed ? 'inset-3.5' : 'inset-2.5 sm:inset-3'
         }`}
       />
 
       {/* 1. Header Bar */}
-      <div className="relative z-10 flex items-start justify-between border-b border-[#e2d7cc] pb-5 mb-7">
+      <div className={`${styles.header} relative z-10 flex items-start justify-between border-b border-[#e2d7cc] pb-5 mb-7`}>
         <div>
           <h1
-            className={`font-serif font-black tracking-wider text-[#1e191a] uppercase leading-none ${
+            className={`${styles.title} font-serif font-black tracking-wider text-[#1e191a] uppercase leading-none ${
               isFixed ? 'text-[44px]' : 'text-3xl sm:text-4xl md:text-[42px]'
             }`}
           >
             Attractiveness Test
           </h1>
           <p
-            className={`font-semibold tracking-[0.2em] text-[#786c6e] uppercase mt-2 ${
+            className={`${styles.subtitle} font-semibold tracking-[0.2em] text-[#786c6e] uppercase mt-2 ${
               isFixed ? 'text-xs' : 'text-[11px] sm:text-xs'
             }`}
           >
@@ -151,7 +189,7 @@ export function DeepScanEditorialPoster({
           </p>
         </div>
 
-        <div className="text-right flex items-center gap-3">
+        <div className={`${styles.headerLabel} text-right flex items-center gap-3`}>
           <div>
             <span className="block text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#362f31]">
               Comprehensive
@@ -160,29 +198,31 @@ export function DeepScanEditorialPoster({
               Facial Analysis
             </span>
           </div>
-          <FourPointStar size={isFixed ? 18 : 16} />
+          <ScanFace size={26} strokeWidth={1} className={styles.seal} />
         </div>
       </div>
 
       {/* 2. Main Dual Column Grid: Left Portrait with Pins & Swatches | Right Feature Analysis Cards */}
       <div
-        className={`relative z-10 gap-7 mb-8 items-stretch ${
+        ref={gridRef}
+        className={`${styles.mainGrid} relative z-10 gap-7 mb-8 items-stretch ${
           isFixed ? 'grid grid-cols-12' : 'grid grid-cols-1 lg:grid-cols-12'
         }`}
       >
         {/* LEFT: Portrait Hero Card with Golden Ratio Overlays & Color Palettes */}
         <div
-          className={`${
+          className={`${styles.portraitPanel} ${
             isFixed ? 'col-span-6' : 'lg:col-span-6'
           } flex flex-col bg-white rounded-2xl border border-[#e6ded7] shadow-sm ${
             isFixed ? 'p-4' : 'p-3 sm:p-4'
           }`}
         >
           {/* Master Portrait Image Viewport with Landmark Points & Connecting Lines */}
-          <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-[#f4eee8]">
+          <div ref={portraitRef} className={`${styles.portrait} relative aspect-[3/4] w-full rounded-xl overflow-hidden bg-[#f4eee8]`}>
             {report.originalImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
+                ref={imageRef}
                 src={report.originalImageUrl}
                 alt="Portrait Master Analysis"
                 className="w-full h-full object-cover block"
@@ -198,42 +238,11 @@ export function DeepScanEditorialPoster({
             {/* Vertical Facial Symmetry Center Line */}
             <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-px border-l border-dashed border-white/80 shadow-sm" />
 
-            {/* Dotted Pin Lines & Anchor Points connecting to features */}
-            <div className="pointer-events-none absolute inset-0">
-              {/* 1. Forehead / Symmetry Pin */}
-              <div className="absolute top-[20%] left-[45%] flex items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-[#b95068] shadow-md" />
-                <span className="w-20 sm:w-24 border-t border-dashed border-white/85" />
-              </div>
 
-              {/* 2. Eye / Intercanthal Pin */}
-              <div className="absolute top-[37%] left-[62%] flex items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-[#b95068] shadow-md" />
-                <span className="w-16 sm:w-20 border-t border-dashed border-white/85" />
-              </div>
-
-              {/* 3. Nose Contour Pin */}
-              <div className="absolute top-[48%] left-[56%] flex items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-[#b95068] shadow-md" />
-                <span className="w-18 sm:w-24 border-t border-dashed border-white/85" />
-              </div>
-
-              {/* 4. Lip Center Pin */}
-              <div className="absolute top-[58%] left-[47%] flex items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-[#b95068] shadow-md" />
-                <span className="w-22 sm:w-28 border-t border-dashed border-white/85" />
-              </div>
-
-              {/* 5. Jawline / Cheek Pin */}
-              <div className="absolute top-[68%] left-[52%] flex items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-white border-2 border-[#b95068] shadow-md" />
-                <span className="w-20 sm:w-28 border-t border-dashed border-white/85" />
-              </div>
-            </div>
           </div>
 
           {/* Bottom Color Palette Bar (Skin Tone, Eye Color, Hair Color) */}
-          <div className="mt-4 pt-3 border-t border-[#f0e8e2] grid grid-cols-3 gap-2 text-center">
+          <div className={`${styles.palette} mt-4 pt-3 border-t border-[#f0e8e2] grid grid-cols-3 gap-2 text-center`}>
             {/* Skin Tone */}
             <div>
               <span className="block text-[10px] font-extrabold tracking-wider text-[#736769] uppercase mb-1.5">
@@ -289,17 +298,17 @@ export function DeepScanEditorialPoster({
 
         {/* RIGHT: Feature Analysis Bento Section (6 Dimension Cards with Real Physical Crops) */}
         <div
-          className={`${
+          className={`${styles.featurePanel} ${
             isFixed ? 'col-span-6' : 'lg:col-span-6'
           } flex flex-col bg-white rounded-2xl border border-[#e6ded7] shadow-sm ${
             isFixed ? 'p-5' : 'p-4 sm:p-5'
           }`}
         >
-          <h2 className="text-center text-xs font-black tracking-[0.25em] text-[#4d4446] uppercase pb-3 border-b border-[#f0e8e2] mb-3">
+          <h2 className={styles.sectionTitle}>
             Feature Analysis
           </h2>
 
-          <div className="flex-1 flex flex-col justify-between space-y-3">
+          <div className={styles.featureList}>
             {report.metrics.map((metric) => {
               const cropSrc = report.crops[metric.cropKey];
               const pct = metric.percentageScore || Math.round((metric.score || 8.0) * 10);
@@ -307,25 +316,26 @@ export function DeepScanEditorialPoster({
               return (
                 <div
                   key={metric.id}
-                  className="flex items-center justify-between gap-3 p-2 sm:p-2.5 rounded-xl hover:bg-[#faf7f4] transition-colors border border-transparent hover:border-[#f0e8e2]"
+                  ref={(node) => { rowRefs.current[metric.id] = node; }}
+                  className={styles.featureRow}
                 >
                   {/* Left Icon */}
-                  <div className="w-8 h-8 rounded-full bg-[#fdf2f4] border border-[#f5d0d8] flex items-center justify-center shrink-0">
+                  <div className={styles.featureIcon}>
                     {renderMetricIcon(metric.id)}
                   </div>
 
                   {/* Middle Details & Progress Bar */}
-                  <div className="flex-1 min-w-0 pr-1">
+                  <div className={styles.featureCopy}>
                     <div className="flex items-baseline justify-between gap-2 mb-0.5">
-                      <h3 className="text-xs sm:text-[13px] font-black tracking-wide text-[#231d1f] uppercase truncate">
+                      <h3 className={styles.featureName}>
                         {metric.name}
                       </h3>
-                      <span className="text-sm sm:text-base font-black text-[#b95068] tracking-tight">
+                      <span className={styles.featurePercent}>
                         {pct}%
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-[#6d6163] leading-snug line-clamp-2 mb-1.5">
+                    <p className={styles.observation} title={metric.observation}>
                       {metric.observation}
                     </p>
 
@@ -339,7 +349,7 @@ export function DeepScanEditorialPoster({
                   </div>
 
                   {/* Right Cropped Photo Box */}
-                  <div className="relative w-14 sm:w-16 h-14 sm:h-16 rounded-lg overflow-hidden bg-[#f4eee8] border border-[#e4ded6] shrink-0">
+                  <div className={styles.crop}>
                     {cropSrc ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -367,17 +377,27 @@ export function DeepScanEditorialPoster({
             })}
           </div>
         </div>
+        <svg className={styles.leaders} aria-hidden="true">
+          {leaders.map(line => (
+            <g key={line.id}>
+              <path d={line.path} fill="none" stroke="#9a7a7c" strokeOpacity=".3" strokeWidth="2.5" />
+              <path d={line.path} fill="none" stroke="#fffaf5" strokeWidth="1.5" strokeDasharray="2 4" strokeLinecap="round" />
+              <circle cx={line.x} cy={line.y} r="3.5" fill="#fffaf5" />
+              <circle cx={line.endX} cy={line.endY} r="3.5" fill="#b95068" />
+            </g>
+          ))}
+        </svg>
       </div>
 
       {/* 3. Lower Grid: Overall Score Card (Left) & Facial Feature Harmony Donut Section (Right) */}
       <div
-        className={`relative z-10 gap-7 items-stretch ${
+        className={`${styles.summaryGrid} relative z-10 gap-7 items-stretch ${
           isFixed ? 'grid grid-cols-12' : 'grid grid-cols-1 lg:grid-cols-12'
         }`}
       >
         {/* BOTTOM LEFT: Overall Attractiveness Score Card */}
         <div
-          className={`${
+          className={`${styles.scorePanel} ${
             isFixed ? 'col-span-5' : 'lg:col-span-5'
           } bg-white rounded-2xl border border-[#e6ded7] flex flex-col items-center justify-center text-center shadow-sm ${
             isFixed ? 'p-7' : 'p-6 sm:p-7'
@@ -390,7 +410,7 @@ export function DeepScanEditorialPoster({
           {/* Giant Display Typography */}
           <div className="flex items-baseline justify-center gap-1 my-1">
             <span
-              className={`font-serif font-black text-[#8e374d] tracking-tight leading-none ${
+              className={`${styles.score} font-serif font-black text-[#8e374d] tracking-tight leading-none ${
                 isFixed ? 'text-[68px]' : 'text-5xl sm:text-6xl md:text-[64px]'
               }`}
             >
@@ -420,7 +440,7 @@ export function DeepScanEditorialPoster({
 
         {/* BOTTOM RIGHT: Facial Feature Harmony Donut & Tag Row */}
         <div
-          className={`${
+          className={`${styles.harmonyPanel} ${
             isFixed ? 'col-span-7' : 'lg:col-span-7'
           } bg-white rounded-2xl border border-[#e6ded7] flex flex-col justify-between shadow-sm ${
             isFixed ? 'p-7' : 'p-6 sm:p-7'
@@ -431,10 +451,10 @@ export function DeepScanEditorialPoster({
           </span>
 
           {/* Donut Gauge & 6 Metric Horizontal Bars */}
-          <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 mb-6">
+          <div className={styles.harmonyBody}>
             {/* Circular Gauge */}
             <div
-              className={`relative shrink-0 flex items-center justify-center ${
+              className={`${styles.gauge} relative shrink-0 flex items-center justify-center ${
                 isFixed ? 'w-36 h-36' : 'w-32 h-32'
               }`}
             >
@@ -470,7 +490,7 @@ export function DeepScanEditorialPoster({
             </div>
 
             {/* 6 Clean Metric Bars */}
-            <div className="flex-1 w-full space-y-2 text-xs">
+            <div className={styles.harmonyBars}>
               {report.metrics.map((m) => {
                 const val = m.percentageScore || Math.round((m.score || 8.0) * 10);
                 const displayName = m.name.toLowerCase().includes('symmetry')
@@ -502,7 +522,7 @@ export function DeepScanEditorialPoster({
           </div>
 
           {/* 4 Pill Badges at the bottom: Balanced, Harmonious, Natural, Photogenic */}
-          <div className="pt-4 border-t border-[#f0e8e2] grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className={styles.badges}>
             <div className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl bg-[#faf7f4] border border-[#ece4dc] text-[11px] font-black uppercase text-[#473d3f]">
               <Scale size={14} className="text-[#b95068]" />
               <span>Balanced</span>
@@ -524,7 +544,7 @@ export function DeepScanEditorialPoster({
       </div>
 
       {/* 4. Elegant Footer */}
-      <div className="relative z-10 mt-8 pt-6 border-t border-[#e2d7cc] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] font-semibold text-[#8a7e80] tracking-wider uppercase">
+      <div className={styles.footer}>
         <div>
           <span className="block text-[#473e40]">Natural Beauty</span>
           <span className="text-[10px] text-[#9c8f91]">A Brighter You</span>
@@ -536,7 +556,7 @@ export function DeepScanEditorialPoster({
 
         <div className="flex items-center gap-1.5">
           <span>Analysis by AIAttractivenessTest.ai</span>
-          <FourPointStar size={12} />
+          
         </div>
       </div>
     </div>

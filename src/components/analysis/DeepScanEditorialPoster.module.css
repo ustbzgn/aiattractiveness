@@ -1,0 +1,122 @@
+/* Scoped to the report: the page and PNG export share the same editorial rules. */
+.poster {
+  --poster-rose: #b95068;
+  --poster-ink: #292326;
+  --poster-rule: #dacdc5;
+  container-type: inline-size;
+  padding: 28px;
+  border-radius: 12px;
+  background: linear-gradient(115deg, #faf7f3, #f6f1ee 55%, #fbf8f5);
+  color: var(--poster-ink);
+  box-shadow: 0 12px 40px #47352b0a;
+  font-family: var(--font-sans), Arial, sans-serif;
+}
+.fixed { padding: 32px; }
+.responsive { width: 100%; }
+.poster .innerBorder { inset: 10px; border-radius: 7px; border-color: var(--poster-rule); }
+.poster .header { align-items: center; gap: 20px; border: 0; padding: 8px 0 24px; margin: 0; }
+.poster .title {
+  font-family: 'Bodoni MT', Didot, 'Times New Roman', serif;
+  font-size: clamp(30px, 6.2cqw, 76px);
+  font-weight: 400;
+  line-height: .98;
+  letter-spacing: -.055em;
+  white-space: nowrap;
+  color: #201c1d;
+}
+.poster .subtitle { font-size: clamp(11px, 1.5cqw, 18px); font-weight: 400; letter-spacing: .24em; margin-top: 12px; color: #55484c; }
+.poster .headerLabel { gap: 12px; flex-shrink: 0; }
+.poster .headerLabel span { font-size: 11px; font-weight: 400; line-height: 1.8; letter-spacing: .2em; }
+.seal { color: var(--poster-rose); }
+.poster .mainGrid { display: grid; grid-template-columns: 1.15fr 1fr; column-gap: 14px; row-gap: 0; margin-bottom: 14px; align-items: stretch; }
+.poster .portraitPanel,
+.poster .featurePanel,
+.poster .scorePanel,
+.poster .harmonyPanel { grid-column: auto; min-width: 0; background: transparent; box-shadow: none; border-radius: 7px; }
+.poster .portraitPanel { display: contents; }
+.poster .portrait { grid-column: 1; grid-row: 1; align-self: stretch; aspect-ratio: auto; min-height: 74cqw; border-radius: 6px; border: 1px solid #c9bbb1; }
+.poster .portrait > img { position: absolute; inset: 0; }
+.poster .palette { grid-column: 1; grid-row: 2; margin-top: 0; padding: 18px 4px 10px; border-top: 0; }
+.poster .palette > div > span { font-size: 13px; font-weight: 400; letter-spacing: .1em; margin-bottom: 10px; }
+.poster .palette > div > div > span { width: clamp(12px, 2cqw, 23px); height: clamp(12px, 2cqw, 23px); box-shadow: none; }
+.poster .featurePanel { grid-column: 2; grid-row: 1; padding: 0; border: 1px solid var(--poster-rule); overflow: hidden; }
+.poster .sectionTitle { padding: 13px 8px; margin: 0; border-bottom: 1px solid var(--poster-rule); font: 400 18px/1.3 var(--font-sans), Arial, sans-serif; letter-spacing: .17em; text-transform: uppercase; text-align: center; color: var(--poster-ink); }
+.featureList { display: flex; flex-direction: column; flex: 1; }
+.featureRow { display: grid; grid-template-columns: 40px minmax(0, 1fr) 32%; gap: 10px; align-items: center; flex: 1; padding: 10px 12px; border-bottom: 1px solid var(--poster-rule); }
+.featureRow:last-child { border-bottom: 0; }
+.featureIcon { color: var(--poster-rose); align-self: start; padding-top: 5px; }
+.featureIcon svg { width: 38px; height: 38px; stroke-width: 1.25; }
+.featureCopy { min-width: 0; }
+.poster .featureName { font: 500 clamp(13px, 1.4cqw, 17px)/1.35 var(--font-sans), Arial, sans-serif; text-transform: uppercase; letter-spacing: -.015em; color: var(--poster-ink); overflow-wrap: anywhere; }
+.featurePercent { color: var(--poster-rose); font-size: clamp(18px, 2.3cqw, 28px); font-family: var(--font-playfair), Georgia, serif; font-weight: 600; white-space: nowrap; }
+.observation { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; margin: 6px 0 9px; font-size: clamp(14px, 1.5cqw, 18px); line-height: 1.4; color: #54494c; overflow-wrap: anywhere; }
+.featureCopy > div:last-child { height: 10px; background: #e6d9d5; }
+.featureCopy > div:last-child > div { background: var(--poster-rose); }
+.crop { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 5px; background: #ede5de; }
+.poster .summaryGrid { display: grid; grid-template-columns: .82fr 1.18fr; gap: 10px; }
+.poster .scorePanel, .poster .harmonyPanel { padding: 24px 18px; border: 1px solid var(--poster-rule); }
+.poster .scorePanel > span, .poster .harmonyPanel > span { font-size: 16px; font-weight: 400; letter-spacing: .08em; }
+.poster .score { font-family: var(--font-playfair), Georgia, serif; font-weight: 600; font-variant-numeric: lining-nums proportional-nums; color: var(--poster-rose); font-size: clamp(82px, 13.8cqw, 166px); letter-spacing: -.065em; line-height: 1; }
+.poster .scorePanel > div > span:last-child:not(:first-child) { font-weight: 400; font-size: 30px; color: var(--poster-ink); }
+.poster .scorePanel > p { font-size: 14px; font-weight: 400; max-width: 280px; }
+.poster .scorePanel > div:nth-of-type(2) { gap: 12px; margin: 9px 0 15px; }
+.poster .scorePanel > div:nth-of-type(2) svg { width: 25px; height: 25px; }
+.poster .scorePanel > div:nth-of-type(3) { font-weight: 400; letter-spacing: .08em; font-size: 13px; padding: 5px 18px; }
+.harmonyBody { display: flex; align-items: center; gap: 18px; margin: 12px 0 22px; }
+.poster .gauge { width: 32%; height: auto; aspect-ratio: 1; }
+.poster .gauge > div > span:first-child { font-size: 12px; font-weight: 400; letter-spacing: .025em; }
+.poster .gauge > div > span:last-child { font: 600 clamp(24px, 3.8cqw, 45px)/1.2 var(--font-playfair), Georgia, serif; }
+.harmonyBars { flex: 1; min-width: 0; display: grid; gap: 12px; }
+.harmonyBars > div { display: grid; grid-template-columns: minmax(0, .85fr) minmax(50px, 1.3fr) 32px; gap: 8px; }
+.harmonyBars > div > span { width: auto; font-size: 13px; font-weight: 400; white-space: normal; }
+.harmonyBars > div > div { height: 10px; background: #e6d9d5; }
+.harmonyBars > div > span:last-child { font-family: var(--font-playfair), Georgia, serif; font-size: 16px; font-weight: 600; }
+.badges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.badges > div { padding: 8px 3px; border-radius: 5px; background: transparent; font-size: 11px; font-weight: 400; gap: 4px; }
+.badges svg { flex-shrink: 0; stroke-width: 1.2; }
+.footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 6px 5px; color: #8c797b; font-size: 12px; font-weight: 400; letter-spacing: .16em; text-transform: uppercase; }
+.footer > div:nth-child(2) { font-weight: 400; font-size: 12px; letter-spacing: .3em; }
+.footer > div:last-child { font: 400 16px/1.5 'Times New Roman', serif; text-transform: none; letter-spacing: 0; color: #514347; }
+
+/* Container-based layout keeps the 1200px export intact even on a phone. */
+@container (max-width: 700px) {
+  .poster .header { flex-wrap: wrap; gap: 12px; }
+  .poster .headerLabel { display: none; }
+  .poster .title { font-size: 7.4cqw; }
+  .poster .mainGrid { grid-template-columns: 1fr; gap: 20px; }
+  .poster .portrait { grid-column: 1; grid-row: 1; min-height: 0; aspect-ratio: 3 / 4; }
+  .poster .featurePanel { grid-column: 1; grid-row: 3; }
+  .poster .palette { padding: 16px 0 0; }
+  .poster .featureRow { grid-template-columns: 36px minmax(0, 1fr) 28%; padding: 12px 12px; }
+  .featureIcon svg { width: 34px; height: 34px; }
+  .poster .featureName { font-size: 14px; }
+  .poster .featurePercent { font-size: 20px; }
+  .poster .observation { font-size: 14px; }
+  .poster .summaryGrid { grid-template-columns: 1fr; }
+  .poster .score { font-size: 112px; }
+  .poster .gauge { max-width: 150px; }
+  .poster .gauge > div > span:last-child { font-size: 32px; }
+  .footer { flex-wrap: wrap; justify-content: center; text-align: center; }
+}
+@container (max-width: 360px) {
+  .poster .featureRow { grid-template-columns: 30px minmax(0, 1fr) 26%; gap: 7px; padding: 13px 8px; }
+  .featureIcon svg { width: 29px; height: 29px; }
+  .poster .featureName { font-size: 12px; }
+  .poster .featurePercent { font-size: 17px; }
+  .poster .harmonyPanel { padding: 20px 10px; }
+  .harmonyBody { gap: 8px; }
+  .harmonyBars > div { gap: 4px; grid-template-columns: minmax(0, 1fr) 32px 26px; }
+  .badges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .responsive { padding: 20px; }
+}
+
+.leaders { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 2; }
+.poster .footer > div:first-child > span { font-size: inherit; }
+@container (max-width: 700px) {
+  .leaders { display: none; }
+  .poster .headerLabel span { font-size: 11px; }
+  .poster .badges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .poster .harmonyBars > div > span { font-size: 12px; }
+}

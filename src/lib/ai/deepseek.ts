@@ -28,20 +28,35 @@ export interface PortraitAnalysisResult {
   recommendations: string[];
 }
 
+export interface CompareMetric {
+  name: string;
+  sublabel: string;
+  scoreA: number;
+  scoreB: number;
+}
+
 export interface PortraitComparisonResult {
   winner: 'Photo A' | 'Photo B' | 'Tie';
   overallAssessment: string;
   photoA: {
     score: string;
+    numericScore?: number;
     strengths: string[];
     weaknesses: string[];
   };
   photoB: {
     score: string;
+    numericScore?: number;
     strengths: string[];
     weaknesses: string[];
   };
   verdictRecommendation: string;
+  advantage?: string;
+  metrics?: CompareMetric[];
+  generatedPoster?: {
+    imageUrl: string;
+    taskId?: string;
+  };
 }
 
 function getDeepSeekConfig() {
@@ -68,6 +83,10 @@ export async function analyzePortraitWithDeepSeek(
 
   const systemInstruction = `You are an elite portrait photographer and lighting consultant.
 Analyze the uploaded portrait objectively.
+Write a personal editorial critique grounded in this specific photo, not generic praise.
+For each metric note, use two concise sentences (about 25-40 words total): identify a concrete visible detail, then explain its effect on this portrait. Do not invent details you cannot see.
+Use a short individualized summaryHeading (3-7 words). summaryText should connect the strongest visible quality with the most useful opportunity in 45-65 words, without repeating all four metric notes.
+Return exactly three distinct recommendations, each 15-25 words, beginning with an action the user can try in their next photo. Prioritize lighting, framing or expression as warranted by the actual image; avoid medical or cosmetic procedures and guaranteed score improvements.
 Evaluate across 4 distinct visual dimensions:
 1. Lighting Quality (softness, direction, shadows, exposure balance)
 2. Framing & Composition (rule of thirds, eye-line, headroom, angles)
@@ -104,7 +123,8 @@ You must respond ONLY with a valid JSON object strictly matching this schema:
   "summaryText": "2-3 sentences of human, encouraging, professional photography advice.",
   "recommendations": [
     "Practical tip 1 to instantly improve the photo",
-    "Practical tip 2 to instantly improve the photo"
+    "Practical tip 2 for the next photo",
+    "Practical tip 3 for the next photo"
   ]
 }`;
 
@@ -177,7 +197,8 @@ You must respond ONLY with a valid JSON object strictly matching this schema:
 export async function analyzePortraitDeepWithDeepSeek(
   normalizedBuffer: Buffer,
   base64Data: string,
-  mimeType: string = 'image/jpeg'
+  mimeType: string = 'image/jpeg',
+  options: { cropRegions?: boolean } = {}
 ): Promise<DeepScanReport> {
   const { apiKey, baseUrl, model } = getDeepSeekConfig();
 
@@ -199,6 +220,7 @@ You must return a JSON object with:
    - "nose": Nose Bridge & Contour
    - "lips": Lip Definition & Harmony
    - "jawline_face_shape": Jawline & Face Contour
+   Editorial length rules for each metric: "observation" must be ONE concise English sentence of 8-14 words (maximum 95 characters), describing only the most distinctive visible feature. Avoid introductory phrases, repeated praise, semicolons, and lists of anatomical details. Put any supporting detail in "evidence", also limited to one short sentence. Before returning JSON, shorten any observation exceeding either limit. Example style: "Softly defined lips with a clear Cupid's bow and balanced fullness."
 7. "influences": { "lighting": string, "angle": string, "expression": string }
 8. "recommendations": array of exactly 3 actionable tips with "priority" ('high'|'medium'|'low'), "title", "reason", "action"
 9. "bestUseCases": array of 3 professional/social scenarios suitable for this photo
@@ -210,19 +232,25 @@ You must return a JSON object with:
    - "lips": Bounding box covering upper and lower lips including Cupid's bow and vermilion border
    - "jawline": Lower-face rectangle encompassing the mandibular angles down to the chin`;
 
+  const analysisInstructions = options.cropRegions === false
+    ? systemInstruction.replace(/11\. "boxes":[\s\S]*$/, 'Do not return bounding boxes. The final report will be rendered from the source portrait.')
+    : systemInstruction;
+
   const payload = {
     model,
     messages: [
       {
         role: 'system',
-        content: systemInstruction,
+        content: analysisInstructions,
       },
       {
         role: 'user',
         content: [
           {
             type: 'text',
-            text: 'Analyze this portrait photo. Identify the 6 dimensions, provide 3 actionable tips, and detect normalized bounding boxes for face, eyes, nose, lips, and jawline. Return strictly JSON.',
+            text: options.cropRegions === false
+              ? 'Analyze this portrait for a concise editorial report. Return the 6 dimensions with short observations and 3 actionable tips as JSON. Do not locate or crop features.'
+              : 'Analyze this portrait photo. Identify the 6 dimensions, provide 3 actionable tips, and detect normalized bounding boxes for face, eyes, nose, lips, and jawline. Return strictly JSON.',
           },
           {
             type: 'image_url',
@@ -239,6 +267,7 @@ You must return a JSON object with:
 
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
+    signal: AbortSignal.timeout(90_000),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
@@ -275,7 +304,7 @@ You must return a JSON object with:
   report.originalImageUrl = `data:${mimeType};base64,${base64Data}`;
 
   // If the image is not analyzable, return immediately without cropping
-  if (!report.isAnalyzable) {
+  if (!report.isAnalyzable || options.cropRegions === false) {
     return report;
   }
 
@@ -307,23 +336,41 @@ export async function comparePortraitsWithDeepSeek(
 ): Promise<PortraitComparisonResult> {
   const { apiKey, baseUrl, model } = getDeepSeekConfig();
 
-  const systemInstruction = `You are an elite portrait photographer comparing two portraits of a subject: Photo A (Baseline) and Photo B (Alternative).
-Critique and compare both images on lighting, angle, expression, depth, and overall aesthetic impact.
+  const systemInstruction = `You are an elite portrait photographer and aesthetics judge comparing two portraits: Photo A (Baseline) and Photo B (Alternative).
+Critique and compare both images on facial symmetry, facial harmony, eye expression, jawline contour, lighting balance, and overall photogenic impact.
+
+Evaluate these 5 specific dimensions with integer scores from 50 to 98:
+1. "FACIAL SYMMETRY" (sublabel: "Balance & Proportion")
+2. "FACIAL HARMONY" (sublabel: "Overall Proportional Balance")
+3. "EYES" (sublabel: "Shape, Symmetry & Spacing")
+4. "JAWLINE" (sublabel: "Definition & Facial Contour")
+5. "PHOTOGENIC APPEAL" (sublabel: "Natural Attractiveness")
+
+Calculate an overall score between 0.00 and 10.00 for Photo A and Photo B. Declare the winner ("Photo A" or "Photo B" or "Tie").
 
 You must respond ONLY with a valid JSON object strictly matching this schema:
 {
   "winner": "Photo A" | "Photo B" | "Tie",
   "overallAssessment": "2-3 sentences detailing which image conveys higher presence and why.",
   "photoA": {
-    "score": "8.2 / 10",
+    "score": "9.12 / 10",
+    "numericScore": 9.12,
     "strengths": ["Key positive attribute 1", "Key positive attribute 2"],
     "weaknesses": ["Improvement area"]
   },
   "photoB": {
-    "score": "8.8 / 10",
+    "score": "8.80 / 10",
+    "numericScore": 8.80,
     "strengths": ["Key positive attribute 1", "Key positive attribute 2"],
     "weaknesses": ["Improvement area"]
   },
+  "metrics": [
+    { "name": "FACIAL SYMMETRY", "sublabel": "Balance & Proportion", "scoreA": 91, "scoreB": 88 },
+    { "name": "FACIAL HARMONY", "sublabel": "Overall Proportional Balance", "scoreA": 89, "scoreB": 86 },
+    { "name": "EYES", "sublabel": "Shape, Symmetry & Spacing", "scoreA": 90, "scoreB": 89 },
+    { "name": "JAWLINE", "sublabel": "Definition & Facial Contour", "scoreA": 87, "scoreB": 84 },
+    { "name": "PHOTOGENIC APPEAL", "sublabel": "Natural Attractiveness", "scoreA": 90, "scoreB": 87 }
+  ],
   "verdictRecommendation": "Clear, actionable recommendation for which one to use for professional or social profiles."
 }`;
 
@@ -362,6 +409,7 @@ You must respond ONLY with a valid JSON object strictly matching this schema:
 
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
+    signal: AbortSignal.timeout(90_000),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
@@ -382,7 +430,55 @@ You must respond ONLY with a valid JSON object strictly matching this schema:
   }
 
   try {
-    return JSON.parse(rawContent) as PortraitComparisonResult;
+    const parsed = JSON.parse(rawContent) as PortraitComparisonResult;
+
+    // Parse numeric scores safely
+    const numA = typeof parsed.photoA?.numericScore === 'number' && Number.isFinite(parsed.photoA.numericScore)
+      ? parsed.photoA.numericScore
+      : parseFloat(parsed.photoA?.score || '8.5') || 8.5;
+    const numB = typeof parsed.photoB?.numericScore === 'number' && Number.isFinite(parsed.photoB.numericScore)
+      ? parsed.photoB.numericScore
+      : parseFloat(parsed.photoB?.score || '8.2') || 8.2;
+
+    parsed.photoA = {
+      ...parsed.photoA,
+      score: parsed.photoA?.score || `${numA.toFixed(2)} / 10`,
+      numericScore: numA,
+      strengths: Array.isArray(parsed.photoA?.strengths) && parsed.photoA.strengths.length
+        ? parsed.photoA.strengths
+        : ['Complimentary lighting and balanced posture'],
+      weaknesses: Array.isArray(parsed.photoA?.weaknesses) ? parsed.photoA.weaknesses : [],
+    };
+
+    parsed.photoB = {
+      ...parsed.photoB,
+      score: parsed.photoB?.score || `${numB.toFixed(2)} / 10`,
+      numericScore: numB,
+      strengths: Array.isArray(parsed.photoB?.strengths) && parsed.photoB.strengths.length
+        ? parsed.photoB.strengths
+        : ['Engaging eye contact and natural tone'],
+      weaknesses: Array.isArray(parsed.photoB?.weaknesses) ? parsed.photoB.weaknesses : [],
+    };
+
+    if (!parsed.winner) {
+      parsed.winner = numA > numB ? 'Photo A' : numB > numA ? 'Photo B' : 'Tie';
+    }
+
+    const diff = Math.abs(numA - numB);
+    parsed.advantage = `+${diff.toFixed(2)} ADVANTAGE`;
+
+    // Ensure 5 standard metrics are populated
+    if (!Array.isArray(parsed.metrics) || parsed.metrics.length < 5) {
+      parsed.metrics = [
+        { name: 'FACIAL SYMMETRY', sublabel: 'Balance & Proportion', scoreA: Math.round(numA * 10), scoreB: Math.round(numB * 10) },
+        { name: 'FACIAL HARMONY', sublabel: 'Overall Proportional Balance', scoreA: Math.round(numA * 9.8), scoreB: Math.round(numB * 9.7) },
+        { name: 'EYES', sublabel: 'Shape, Symmetry & Spacing', scoreA: Math.round(numA * 9.9), scoreB: Math.round(numB * 10.1) },
+        { name: 'JAWLINE', sublabel: 'Definition & Facial Contour', scoreA: Math.round(numA * 9.6), scoreB: Math.round(numB * 9.5) },
+        { name: 'PHOTOGENIC APPEAL', sublabel: 'Natural Attractiveness', scoreA: Math.round(numA * 9.9), scoreB: Math.round(numB * 9.8) },
+      ];
+    }
+
+    return parsed;
   } catch (err) {
     throw new Error(`Failed to parse DeepSeek comparison JSON: ${err instanceof Error ? err.message : String(err)}`);
   }

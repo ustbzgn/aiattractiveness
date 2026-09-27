@@ -55,6 +55,7 @@ export interface DeepScanPalette {
 }
 
 export interface DeepScanReport {
+  generatedPoster?: { imageUrl: string; taskId: string };
   schemaVersion: '1.0.0';
   isAnalyzable: boolean;
   unusableReason?: string;

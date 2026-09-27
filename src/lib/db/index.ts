@@ -17,14 +17,34 @@ if (!connectionString) {
   }
 }
 
-export const pool = new Pool({
-  connectionString: connectionString || 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
-  ssl: connectionString && !connectionString.includes('localhost')
-    ? { rejectUnauthorized: false }
-    : undefined,
-  max: 3,
-  idleTimeoutMillis: 10000,
+// Prevent multiple Pool instances in Next.js development hot-reloading (HMR)
+const globalForDb = globalThis as unknown as {
+  pool: Pool | undefined;
+};
+
+export const pool =
+  globalForDb.pool ??
+  new Pool({
+    connectionString:
+      connectionString ||
+      'postgresql://placeholder:placeholder@localhost:5432/placeholder',
+    ssl:
+      connectionString && !connectionString.includes('localhost')
+        ? { rejectUnauthorized: false }
+        : undefined,
+    max: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 15000,
+    keepAlive: true,
+  });
+
+pool.on('error', (err) => {
+  console.warn('[db pool] Idle connection dropped or reset by server:', err.message);
 });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForDb.pool = pool;
+}
 
 export const db = drizzle(pool, { schema });
 export type DbClient = typeof db;

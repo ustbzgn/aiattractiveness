@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, ShieldAlert, CheckCircle2, Loader2 } from 'lucide-react';
 import { messages } from '@/lib/messages/en';
-import { authClient, isAuthConfigured } from '@/lib/auth-client';
+import { authClient } from '@/lib/auth-client';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -95,17 +95,6 @@ export default function SignInPage() {
       </div>
 
       <div className="card-panel p-7 sm:p-8 mb-6 border-[#f0e6e8] shadow-sm">
-        {/* Notice of missing or local preview config state */}
-        {!isAuthConfigured && (
-          <div className="bg-[#fffbeb] border border-[#fde68a] rounded-xl p-3.5 mb-6 flex items-start gap-2.5 text-xs text-[#92400e]">
-            <ShieldAlert size={18} className="shrink-0 mt-0.5" />
-            <div>
-              <strong className="font-bold">Service Notice: </strong>
-              <span>{messages.routes.signIn.missingConfigNotice}</span>
-            </div>
-          </div>
-        )}
-
         {statusMessage && (
           <div
             role="alert"
