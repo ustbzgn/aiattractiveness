@@ -44,6 +44,9 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3002',
     'http://127.0.0.1:3002',
+    'http://192.168.*:*',
+    'http://10.*:*',
+    'http://172.*:*',
     process.env.NEXT_PUBLIC_APP_URL || '',
     process.env.BETTER_AUTH_URL || '',
   ].filter(Boolean),

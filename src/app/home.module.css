@@ -17,8 +17,8 @@
 .heroNote { margin-top: 18px; font-family: Georgia, serif; font-style: italic; color: #807377; font-size: 14px; }
 .uploadPanel { position: relative; isolation: isolate; width: calc(100% - 40px); max-width: 760px; margin: 0 auto 104px; padding: 26px 32px 28px; border: 1px solid var(--home-line); border-radius: 20px; background: #fff; box-shadow: 0 16px 50px -28px #76565e45; scroll-margin-top: 110px; overflow: hidden; }
 .panelHeading { display: flex; justify-content: space-between; gap: 12px; font-size: 9px; letter-spacing: .16em; color: #85777d; margin-bottom: 20px; }
-.uploadPanel :global(.tabs-container) { max-width: none; padding: 5px; gap: 4px; background: #f6f2f1; border: 0; margin-bottom: 22px; }
-.uploadPanel :global(.tab-btn) { min-height: 43px; padding: 10px 8px; }
+.uploadPanel :global(.tabs-container) { max-width: none; padding: 5px; gap: 4px; background: #f6f2f1; border: 0; margin-bottom: 16px; }
+.uploadPanel :global(.tab-btn) { min-height: 43px; padding: 10px 8px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
 .uploadPanel :global(.tab-btn.active) { background: #b95068; color: #fff; box-shadow: 0 3px 8px #99516524; }
 .uploadPanel :global(.viewfinder-dropzone) { border-color: #d8c9cb; background: #fdfbf9; border-radius: 12px; padding: 34px 20px; }
 .uploadPanel :global(.viewfinder-dropzone:hover) { background: #fcf5f5; box-shadow: 0 0 0 3px #f6e8eb; }
@@ -62,8 +62,9 @@
   .heroNote { font-size: 12px; }
   .uploadPanel { width: calc(100% - 28px); padding: 20px 16px; border-radius: 16px; margin-bottom: 68px; }
   .panelHeading { font-size: 8px; letter-spacing: .1em; }
-  .uploadPanel :global(.tab-btn) span { gap: 4px; font-size: 10px; white-space: nowrap; }
-  .uploadPanel :global(.tab-btn) svg { width: 12px; }
+  .uploadPanel :global(.tab-btn) { min-height: 40px; padding: 6px 4px; }
+  .uploadPanel :global(.tab-btn) span { gap: 4px; font-size: 11px; white-space: nowrap; }
+  .uploadPanel :global(.tab-btn) svg { width: 13px; height: 13px; }
   .uploadPanel :global(.viewfinder-dropzone) { padding: 28px 14px; }
   .uploadPanel h4 { font-size: 20px; }
   .uploadPanel :global(.btn-rose) { min-width: 0; width: 100%; }

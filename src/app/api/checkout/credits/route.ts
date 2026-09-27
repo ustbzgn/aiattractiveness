@@ -4,6 +4,7 @@ import { getCreditPackageById } from '@/lib/credits/packages';
 import { getPaymentProvider } from '@/lib/payment/waffo';
 import { db } from '@/lib/db';
 import { creditOrder } from '@/lib/db/schema';
+import { CreditService } from '@/lib/credits/service';
 import { getOrCreateCurrentUserId, GUEST_COOKIE_NAME, GUEST_COOKIE_MAX_AGE } from '@/lib/auth/guest';
 
 export const dynamic = 'force-dynamic';
@@ -69,20 +70,36 @@ export async function POST(request: Request) {
 
     // 5. Store pending order record
     const orderId = result.orderId || `ord_${result.sessionId}`;
-    try {
-      await db.insert(creditOrder).values({
-        id: `local_ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        orderId,
-        userId: targetUserId,
-        packId: pack.id,
-        credits: pack.credits,
-        amountUsd: pack.priceUsd.toFixed(2),
-        currency: 'USD',
-        status: 'pending',
-        checkoutSessionId: result.sessionId,
-      });
-    } catch (dbErr) {
-      console.warn('[checkout] database record insert deferred or failed:', dbErr);
+    const isMock = orderId.startsWith('demo_ord_') || (result.checkoutUrl && result.checkoutUrl.includes('mock=true'));
+
+    if (isMock) {
+      try {
+        await CreditService.grantCreditsFromOrder({
+          orderId,
+          userId: targetUserId,
+          packId: pack.id,
+          amountUsd: pack.priceUsd.toFixed(2),
+          currency: 'USD',
+        });
+      } catch (mockGrantErr) {
+        console.warn('[checkout] mock credit grant error:', mockGrantErr);
+      }
+    } else {
+      try {
+        await db.insert(creditOrder).values({
+          id: `local_ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          orderId,
+          userId: targetUserId,
+          packId: pack.id,
+          credits: pack.credits,
+          amountUsd: pack.priceUsd.toFixed(2),
+          currency: 'USD',
+          status: 'pending',
+          checkoutSessionId: result.sessionId,
+        });
+      } catch (dbErr) {
+        console.warn('[checkout] database record insert deferred or failed:', dbErr);
+      }
     }
 
     const response = NextResponse.json({

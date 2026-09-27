@@ -194,17 +194,6 @@ export default function HomePage() {
     if (compareInputBRef.current) compareInputBRef.current.value = '';
   };
 
-  // Keyboard accessibility triggers for dropzone
-  const handleKeyDownDropzone = (
-    e: React.KeyboardEvent,
-    triggerRef: React.RefObject<HTMLInputElement | null>
-  ) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      triggerRef.current?.click();
-    }
-  };
-
   // Simulated scan animation and automatic modal pop-up on completion
   const startSimulatedScan = () => {
     setIsSimulatingScan(true);
@@ -391,7 +380,7 @@ export default function HomePage() {
 
         <div className={styles.panelHeading}><span>YOUR PORTRAIT, IN FOCUS</span><span>01 / UPLOAD</span></div>
         {/* Three Tabs - Clean Photography Diagnostic Modes */}
-        <div className="tabs-container mb-8 max-w-[560px] mx-auto">
+        <div className="tabs-container mb-3 sm:mb-4 max-w-[560px] mx-auto">
           <button
             type="button"
             className={`tab-btn ${activeTab === 'fast' ? 'active' : ''}`}
@@ -436,18 +425,38 @@ export default function HomePage() {
           </button>
         </div>
 
+        {/* Dynamic Mode Explanatory Pill for clear visual feedback */}
+        <div className="text-center mb-6">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-[#faf8f9] border border-[#f0e6e8] text-[#575254]">
+            {activeTab === 'fast' && (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#16a34a] shrink-0" />
+                <span>Fast Test · 10 Credits · Quick overview of lighting, symmetry & posture</span>
+              </>
+            )}
+            {activeTab === 'deep' && (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#e05670] shrink-0" />
+                <span>Deep Scan · 40 Credits · 6-dimension facial diagnostics & magazine poster</span>
+              </>
+            )}
+            {activeTab === 'compare' && (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#8b5cf6] shrink-0" />
+                <span>Face Compare · 50 Credits · Side-by-side battle poster & winner verdict</span>
+              </>
+            )}
+          </span>
+        </div>
+
         {/* Upload Zone Area */}
         {activeTab !== 'compare' ? (
           /* Single Image Upload (Fast Test / Deep Scan) */
           <div>
             {!singlePreview ? (
-              <div
-                className="viewfinder-dropzone group"
-                role="button"
-                tabIndex={0}
-                aria-label={messages.upload.singleTitle}
-                onClick={() => singleInputRef.current?.click()}
-                onKeyDown={(e) => handleKeyDownDropzone(e, singleInputRef)}
+              <label
+                htmlFor="single-portrait-upload"
+                className="viewfinder-dropzone group block cursor-pointer select-none"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -461,25 +470,28 @@ export default function HomePage() {
                 <div className="viewfinder-corner viewfinder-br" />
 
                 <input
+                  id="single-portrait-upload"
                   ref={singleInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="hidden"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+                  className="sr-only"
                   onChange={(e) => handleSingleFileSelect(e.target.files?.[0])}
                 />
                 <div className="w-14 h-14 rounded-2xl bg-[#fdf2f4] flex items-center justify-center mx-auto mb-3.5 text-[#e05670] shadow-xs group-hover:scale-105 transition-transform duration-200">
                   <ImagePlus size={26} strokeWidth={2} />
                 </div>
                 <h4 className="text-lg font-bold text-[#1f1d1e] mb-1">
-                  {messages.upload.singleTitle}
+                  {activeTab === 'deep' ? 'Upload portrait for Deep Scan' : messages.upload.singleTitle}
                 </h4>
                 <p className="text-sm text-[#575254] mb-2 max-w-sm mx-auto">
-                  {messages.upload.singleSubtitle}
+                  {activeTab === 'deep'
+                    ? 'Detailed 6-dimension facial diagnostics and luxury editorial poster'
+                    : 'Tap to take photo or choose from photo library'}
                 </p>
                 <span className="text-xs text-[#8a8486] font-medium tracking-wide">
                   {messages.upload.constraints}
                 </span>
-              </div>
+              </label>
             ) : (
               /* Removable Preview for Single Image */
               <div className="relative rounded-2xl overflow-hidden border border-[#e2d3d6] bg-[#1f1d1e] text-center p-3 sm:p-4 shadow-md">
@@ -515,13 +527,9 @@ export default function HomePage() {
             {/* Slot 1: Photo A */}
             <div>
               {!comparePreviewA ? (
-                <div
-                  className="viewfinder-dropzone py-8 px-4 group"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={messages.upload.compareSlot1}
-                  onClick={() => compareInputARef.current?.click()}
-                  onKeyDown={(e) => handleKeyDownDropzone(e, compareInputARef)}
+                <label
+                  htmlFor="compare-portrait-a"
+                  className="viewfinder-dropzone py-8 px-4 group block cursor-pointer select-none"
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -534,18 +542,19 @@ export default function HomePage() {
                   <div className="viewfinder-corner viewfinder-br" />
 
                   <input
+                    id="compare-portrait-a"
                     ref={compareInputARef}
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    className="hidden"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+                    className="sr-only"
                     onChange={(e) => handleCompareSelectA(e.target.files?.[0])}
                   />
                   <div className="w-11 h-11 rounded-xl bg-[#fdf2f4] flex items-center justify-center mx-auto mb-2 text-[#e05670] group-hover:scale-105 transition-transform">
                     <ImagePlus size={22} />
                   </div>
                   <p className="text-sm font-semibold text-[#1f1d1e] mb-1">Photo A (Baseline)</p>
-                  <p className="text-xs text-[#8a8486]">{messages.upload.slotHint}</p>
-                </div>
+                  <p className="text-xs text-[#8a8486]">Tap to choose or take photo</p>
+                </label>
               ) : (
                 <div className="relative rounded-xl border border-[#e2d3d6] overflow-hidden bg-[#1f1d1e] p-2">
                   {isSimulatingScan && <div className="scanner-laser-line" />}
@@ -575,13 +584,9 @@ export default function HomePage() {
             {/* Slot 2: Photo B */}
             <div>
               {!comparePreviewB ? (
-                <div
-                  className="viewfinder-dropzone py-8 px-4 group"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={messages.upload.compareSlot2}
-                  onClick={() => compareInputBRef.current?.click()}
-                  onKeyDown={(e) => handleKeyDownDropzone(e, compareInputBRef)}
+                <label
+                  htmlFor="compare-portrait-b"
+                  className="viewfinder-dropzone py-8 px-4 group block cursor-pointer select-none"
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -594,18 +599,19 @@ export default function HomePage() {
                   <div className="viewfinder-corner viewfinder-br" />
 
                   <input
+                    id="compare-portrait-b"
                     ref={compareInputBRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    className="hidden"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/*"
+                    className="sr-only"
                     onChange={(e) => handleCompareSelectB(e.target.files?.[0])}
                   />
                   <div className="w-11 h-11 rounded-xl bg-[#fdf2f4] flex items-center justify-center mx-auto mb-2 text-[#e05670] group-hover:scale-105 transition-transform">
                     <ImagePlus size={22} />
                   </div>
                   <p className="text-sm font-semibold text-[#1f1d1e] mb-1">Photo B (Alternative)</p>
-                  <p className="text-xs text-[#8a8486]">{messages.upload.slotHint}</p>
-                </div>
+                  <p className="text-xs text-[#8a8486]">Tap to choose or take photo</p>
+                </label>
               ) : (
                 <div className="relative rounded-xl border border-[#e2d3d6] overflow-hidden bg-[#1f1d1e] p-2">
                   {isSimulatingScan && <div className="scanner-laser-line" />}

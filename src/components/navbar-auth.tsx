@@ -7,7 +7,7 @@ import { authClient, useSession } from '@/lib/auth-client';
 import { messages } from '@/lib/messages/en';
 
 export function NavbarAuth() {
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -70,52 +70,51 @@ export function NavbarAuth() {
     }
   };
 
-  if (isPending) {
-    return (
-      <div className="h-8 w-20 rounded-full bg-[#ffe4eb]/50 animate-pulse" />
-    );
-  }
-
   if (session?.user) {
     const displayName = session.user.name || session.user.email?.split('@')[0] || 'User';
     const email = session.user.email;
     const initial = displayName.charAt(0).toUpperCase();
 
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Credits Badge with Direct Top-Up Link */}
         <Link
           href="/pricing"
           title="Click to recharge credits"
-          className="group flex items-center gap-1.5 py-1 px-3 rounded-full bg-gradient-to-r from-[#fff1f4] to-[#fdf2f4] border border-[#fecdd6] text-[#e11d48] hover:border-[#f43f5e] hover:shadow-xs transition-all text-xs font-semibold"
+          className="group flex items-center gap-1 sm:gap-1.5 py-1 px-2 sm:px-3 rounded-full bg-gradient-to-r from-[#fff1f4] to-[#fdf2f4] border border-[#fecdd6] text-[#e11d48] hover:border-[#f43f5e] hover:shadow-xs transition-all text-xs font-semibold shrink-0"
         >
-          <Coins size={14} className="text-[#f43f5e] animate-pulse" />
+          <Coins size={14} className="text-[#f43f5e] shrink-0" />
           <span>
             {isLoadingCredits && credits === null ? (
               '...'
             ) : (
-              `${credits ?? 0} Credits`
+              <>
+                <span>{credits ?? 0}</span>
+                <span className="hidden sm:inline ml-1">Credits</span>
+              </>
             )}
           </span>
-          <span className="w-4 h-4 rounded-full bg-[#f43f5e] text-white flex items-center justify-center text-[10px] ml-0.5 group-hover:scale-110 transition-transform">
+          <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#f43f5e] text-white flex items-center justify-center text-[9px] sm:text-[10px] ml-0.5 group-hover:scale-110 transition-transform shrink-0">
             <Plus size={10} strokeWidth={3} />
           </span>
         </Link>
 
         {/* User Profile Dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative shrink-0" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-2 py-1 px-2.5 rounded-full border border-[#f7d6de] bg-white text-[#24141b] hover:bg-[#fff1f4] hover:border-[#fecdd6] transition-all cursor-pointer shadow-xs"
+            aria-expanded={dropdownOpen}
+            aria-label="User menu"
+            className="flex items-center gap-1.5 sm:gap-2 p-1 sm:py-1 sm:px-2.5 rounded-full border border-[#f7d6de] bg-white text-[#24141b] hover:bg-[#fff1f4] hover:border-[#fecdd6] transition-all cursor-pointer shadow-xs"
           >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#fb7185] to-[#f43f5e] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+            <div className="w-6 h-6 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-[#fb7185] to-[#f43f5e] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
               {initial}
             </div>
-            <span className="text-xs font-semibold max-w-[90px] sm:max-w-[120px] truncate">
+            <span className="hidden sm:inline text-xs font-semibold max-w-[90px] sm:max-w-[120px] truncate">
               {displayName}
             </span>
-            <ChevronDown size={14} className="text-[#8e727e]" />
+            <ChevronDown size={14} className="hidden sm:inline text-[#8e727e]" />
           </button>
 
           {dropdownOpen && (
