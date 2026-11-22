@@ -10,7 +10,7 @@ export default defineConfig({
   schema: './src/lib/db/schema.ts',
   out: './src/lib/db/migrations',
   dialect: 'postgresql',
-  schemaFilter: ['aiattractiveness'],
+  schemaFilter: ['colorai_portal'],
   strict: true,
   verbose: true,
 });

@@ -21,21 +21,36 @@ function CheckoutStatusContent() {
     }
 
     let isMounted = true;
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const scheduleNext = () => {
+      if (!isMounted || attempts >= maxAttempts) return;
+      timer = setTimeout(checkStatus, 3000);
+    };
 
     const checkStatus = async () => {
+      attempts += 1;
+      if (isMounted) setPollCount(attempts);
+
       try {
-        const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}/status`);
+        const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}/status`, {
+          cache: 'no-store',
+        });
+        if (!isMounted) return;
+
         if (!res.ok) {
-          if (res.status === 401) {
-            setErrorMessage('Please log in to review your order settlement status.');
+          if (res.status === 401 || res.status === 403) {
+            setErrorMessage('Please sign in with the account used for this purchase to view order status.');
             return;
           }
           if (res.status === 404) {
-            // Order may still be registering from gateway
-            setPollCount((prev) => prev + 1);
+            scheduleNext();
             return;
           }
+          scheduleNext();
+          return;
         }
 
         const data = await res.json();
@@ -44,32 +59,30 @@ function CheckoutStatusContent() {
         if (data.status === 'paid') {
           setOrderStatus('paid');
           setCreditsAdded(data.credits);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('refresh-user-credits'));
+          }
           return;
         } else if (data.status === 'failed') {
           setOrderStatus('failed');
           return;
         } else {
           setOrderStatus('pending');
-          setPollCount((prev) => prev + 1);
+          scheduleNext();
         }
-      } catch (err) {
+      } catch {
         if (!isMounted) return;
-        setPollCount((prev) => prev + 1);
+        scheduleNext();
       }
     };
 
     checkStatus();
 
-    // Poll every 3 seconds for up to 10 attempts (30s), then leave honest pending notice
-    if (orderStatus === 'pending' && pollCount < 10) {
-      timer = setTimeout(checkStatus, 3000);
-    }
-
     return () => {
       isMounted = false;
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
     };
-  }, [orderId, pollCount, orderStatus]);
+  }, [orderId]);
 
   return (
     <div className="max-w-[640px] mx-auto w-full">
@@ -121,7 +134,7 @@ function CheckoutStatusContent() {
             </p>
             <div className="inline-flex items-center gap-2 text-xs text-[#8a8486] bg-[#faf8f9] px-4 py-2 rounded-xl border border-[#f0e6e8]">
               <Loader2 size={14} className="animate-spin text-[#e05670]" />
-              <span>Awaiting merchant webhook confirmation... (attempt {pollCount + 1})</span>
+              <span>Confirming your payment... ({Math.max(pollCount, 1)}/10)</span>
             </div>
           </div>
         )}

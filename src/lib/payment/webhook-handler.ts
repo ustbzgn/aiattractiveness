@@ -3,15 +3,16 @@ import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 import { getCreditPackageById } from '@/lib/credits/packages';
 import { getOrCreateUserWallet } from '@/lib/credits/wallet';
+import { CreditService } from '@/lib/credits/service';
 import type { WebhookEventPayload } from '@/lib/payment';
 
 /**
- * Webhook fulfillment for one-time credit pack purchases.
- * Follows strict financial engineering standards:
- * 1. Cryptographic event deduplication via schema.webhookEvent (idempotency, safe for provider retries).
- * 2. Multi-strategy user resolution: orderMetadata.userId -> merchantProvidedBuyerIdentity -> buyerEmail.
- * 3. Atomic credit grant & immutable ledger audit entry in schema.creditLedger.
- * 4. Updates schema.creditOrder status to 'paid'.
+ * Unified webhook fulfillment for one-time credit pack purchases and refunds.
+ * 1. Event deduplication via schema.webhookEvent (idempotent for provider retries).
+ * 2. Project check (ignores foreign project events).
+ * 3. Handles order.completed / payment.succeeded (with 4-scenario guest/email alignment)
+ *    and order.refunded / refund.created.
+ * 4. Always uses server-side pack.totalCredits (including bonus credits) inside a DB transaction.
  */
 export async function handleWebhookEvent(
   event: WebhookEventPayload,
@@ -34,9 +35,13 @@ export async function handleWebhookEvent(
     return;
   }
 
-  // Handle only completed orders
-  if (event.eventType !== 'order.completed') {
-    console.log(`[webhook] Ignoring event type: ${event.eventType} (${event.id})`);
+  const metadata = event.data?.orderMetadata || {};
+  const productMetadata = event.data?.productMetadata || {};
+
+  // Ignore webhooks belonging to another project sharing the merchant account
+  const allowedProjects = ['colorai', 'aiattractiveness'];
+  if (metadata.project && !allowedProjects.includes(metadata.project)) {
+    console.warn(`[webhook] Event project mismatch (${metadata.project}), ignoring: ${event.id}`);
     return;
   }
 
@@ -46,10 +51,20 @@ export async function handleWebhookEvent(
     return;
   }
 
-  // 2. User Resolution & Email Binding:
-  // Ensures credits and email are strictly 1-to-1 mapped in ALL cases (both authenticated and guest).
-  const metadata = event.data?.orderMetadata || {};
-  const productMetadata = event.data?.productMetadata || {};
+  // Handle refund events
+  if (event.eventType === 'order.refunded' || event.eventType === 'refund.created') {
+    const result = await CreditService.refundOrder(orderId);
+    console.log(`[webhook] Processed refund for order ${orderId}:`, result);
+    return;
+  }
+
+  // Handle completed payment events
+  if (event.eventType !== 'order.completed' && event.eventType !== 'payment.succeeded') {
+    console.log(`[webhook] Ignoring event type: ${event.eventType} (${event.id})`);
+    return;
+  }
+
+  // 2. User Resolution & Email Binding (4 scenarios: member, returning member as guest, guest promotion, external):
   const directUserId = typeof metadata.userId === 'string' ? metadata.userId : null;
   const buyerIdentity = event.data?.merchantProvidedBuyerIdentity || null;
   const buyerEmail = (event.data?.buyerEmail || '').trim().toLowerCase() || null;
@@ -57,7 +72,6 @@ export async function handleWebhookEvent(
   let targetUserId: string | null = directUserId || buyerIdentity;
 
   if (buyerEmail) {
-    // Check if a registered user with this real buyer email already exists
     const existingUserByEmail = await db
       .select()
       .from(schema.user)
@@ -66,53 +80,45 @@ export async function handleWebhookEvent(
 
     if (existingUserByEmail.length > 0) {
       const canonicalUser = existingUserByEmail[0];
-      // If payment was initiated by a temporary guest ID different from the canonical user:
       if (targetUserId && targetUserId !== canonicalUser.id) {
         console.log(
           `[webhook] Aligning guest ${targetUserId} to existing account ${canonicalUser.id} for email ${buyerEmail}`
         );
-        // Consolidate target to the canonical user
         targetUserId = canonicalUser.id;
       } else if (!targetUserId) {
         targetUserId = canonicalUser.id;
       }
-    } else {
-      // No user with this email exists yet
-      if (targetUserId) {
-        // If targetUserId is a guest account (e.g., email ending in @guest.local), promote it to the real buyerEmail
-        const currentUserRecord = await db
-          .select()
-          .from(schema.user)
-          .where(eq(schema.user.id, targetUserId))
-          .limit(1);
+    } else if (targetUserId) {
+      const currentUserRecord = await db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.id, targetUserId))
+        .limit(1);
 
-        if (currentUserRecord.length > 0 && currentUserRecord[0].email.endsWith('@guest.local')) {
-          console.log(
-            `[webhook] Promoting guest ${targetUserId} to permanent email: ${buyerEmail}`
-          );
-          await db
-            .update(schema.user)
-            .set({
-              email: buyerEmail,
-              name: buyerEmail.split('@')[0],
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.user.id, targetUserId));
-        }
-      } else {
-        // No targetUserId provided: create a fresh user bound to buyerEmail
-        targetUserId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        console.log(`[webhook] Creating new user ${targetUserId} for buyerEmail: ${buyerEmail}`);
-        await db.insert(schema.user).values({
-          id: targetUserId,
-          name: buyerEmail.split('@')[0],
-          email: buyerEmail,
-          emailVerified: true,
-        });
+      if (currentUserRecord.length > 0 && currentUserRecord[0].email.endsWith('@guest.local')) {
+        console.log(
+          `[webhook] Promoting guest ${targetUserId} to permanent email: ${buyerEmail}`
+        );
+        await db
+          .update(schema.user)
+          .set({
+            email: buyerEmail,
+            name: buyerEmail.split('@')[0],
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.user.id, targetUserId));
       }
+    } else {
+      targetUserId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      console.log(`[webhook] Creating new user ${targetUserId} for buyerEmail: ${buyerEmail}`);
+      await db.insert(schema.user).values({
+        id: targetUserId,
+        name: buyerEmail.split('@')[0],
+        email: buyerEmail,
+        emailVerified: true,
+      });
     }
   } else if (targetUserId) {
-    // Fallback if no buyerEmail provided by gateway (unlikely)
     const exists = await db
       .select({ id: schema.user.id })
       .from(schema.user)
@@ -128,98 +134,101 @@ export async function handleWebhookEvent(
     return;
   }
 
-  // 3. Resolve Credit Package & Credits Granted
-  const packId = (metadata.packId || productMetadata.packId || 'pack_starter') as string;
+  // 3. Resolve Credit Package & Server-Controlled Credits (prefer pack.totalCredits so bonus credits are always included)
+  const packId = (metadata.packId || productMetadata.packId || 'pack_1usd') as string;
   const pack = getCreditPackageById(packId);
 
-  // Parse credits from metadata or fallback to fixed server package config
   let creditsGranted = 0;
-  if (metadata.credits) {
+  if (pack) {
+    creditsGranted = pack.totalCredits || pack.credits;
+  } else if (metadata.credits) {
     creditsGranted = parseInt(metadata.credits, 10) || 0;
   }
-  if (!creditsGranted && pack) {
-    creditsGranted = pack.totalCredits || pack.credits;
-  }
   if (!creditsGranted) {
-    creditsGranted = 20; // safe fallback starter credits
+    creditsGranted = 40;
   }
 
   console.log(
     `[webhook] Fulfilling order ${orderId} for user ${targetUserId}: granting ${creditsGranted} credits (pack: ${packId})`
   );
 
-  // 4. Ensure wallet exists and execute atomic balance increment + ledger record
-  const wallet = await getOrCreateUserWallet(targetUserId);
-  const newBalance = wallet.balance + creditsGranted;
-  const ledgerId = `ldg_order_${orderId}_${Date.now()}`;
+  // 4. Ensure wallet exists (0 default balance) and atomically fulfill order + increment balance + append ledger
+  await getOrCreateUserWallet(targetUserId, 0);
 
-  // Update wallet balance
-  await db
-    .update(schema.creditWallet)
-    .set({
-      balance: sql`${schema.creditWallet.balance} + ${creditsGranted}`,
-      lifetimeGranted: sql`${schema.creditWallet.lifetimeGranted} + ${creditsGranted}`,
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.creditWallet.userId, targetUserId));
+  await db.transaction(async (tx) => {
+    const existingOrder = await tx
+      .select()
+      .from(schema.creditOrder)
+      .where(eq(schema.creditOrder.orderId, orderId))
+      .limit(1);
 
-  // Insert immutable audit record into credit_ledger
-  await db
-    .insert(schema.creditLedger)
-    .values({
-      id: ledgerId,
-      walletId: wallet.id,
-      userId: targetUserId,
-      amount: creditsGranted,
-      balanceAfter: newBalance,
-      type: 'pack_purchase',
-      referenceId: orderId,
-      notes: `One-time pack purchase fulfilled: ${pack?.name || packId} (${creditsGranted} credits)`,
-      metadata: {
-        orderId,
-        packId,
-        buyerEmail,
-        amount: event.data.amount,
-        currency: event.data.currency,
-        deliveryEventId: event.id,
-      },
-    })
-    .onConflictDoNothing();
+    if (existingOrder.length > 0 && existingOrder[0].status === 'paid') {
+      console.log(`[webhook] Order ${orderId} already marked paid, skipping duplicate credit grant.`);
+      return;
+    }
 
-  // 5. Update or insert credit_order status to 'paid'
-  const existingOrder = await db
-    .select()
-    .from(schema.creditOrder)
-    .where(eq(schema.creditOrder.orderId, orderId))
-    .limit(1);
-
-  if (existingOrder.length > 0) {
-    await db
-      .update(schema.creditOrder)
+    const [updatedWallet] = await tx
+      .update(schema.creditWallet)
       .set({
-        status: 'paid',
-        paidAt: new Date(),
+        balance: sql`${schema.creditWallet.balance} + ${creditsGranted}`,
+        lifetimeGranted: sql`${schema.creditWallet.lifetimeGranted} + ${creditsGranted}`,
+        updatedAt: new Date(),
       })
-      .where(eq(schema.creditOrder.orderId, orderId));
-  } else {
-    // If order was not locally initiated via POST /api/checkout/credits (e.g. direct gateway link)
-    await db
-      .insert(schema.creditOrder)
+      .where(eq(schema.creditWallet.userId, targetUserId))
+      .returning();
+
+    const ledgerId = `ldg_order_${orderId}_${Date.now()}`;
+
+    await tx
+      .insert(schema.creditLedger)
       .values({
-        id: `ord_${orderId}`,
-        orderId,
+        id: ledgerId,
+        walletId: updatedWallet.id,
         userId: targetUserId,
-        packId,
-        credits: creditsGranted,
-        amountUsd: event.data.amount || (pack ? pack.priceUsd.toFixed(2) : '1.00'),
-        currency: event.data.currency || 'USD',
-        status: 'paid',
-        paidAt: new Date(),
+        amount: creditsGranted,
+        balanceAfter: updatedWallet.balance,
+        type: 'pack_purchase',
+        referenceId: orderId,
+        notes: `One-time pack purchase fulfilled: ${pack?.name || packId} (${creditsGranted} credits)`,
+        metadata: {
+          orderId,
+          packId,
+          buyerEmail,
+          amount: event.data.amount,
+          currency: event.data.currency,
+          deliveryEventId: event.id,
+        },
       })
       .onConflictDoNothing();
-  }
 
-  console.log(
-    `[webhook] Successfully fulfilled order ${orderId}. User ${targetUserId} balance is now ${newBalance} credits.`
-  );
+    if (existingOrder.length > 0) {
+      await tx
+        .update(schema.creditOrder)
+        .set({
+          credits: creditsGranted,
+          status: 'paid',
+          paidAt: new Date(),
+        })
+        .where(eq(schema.creditOrder.orderId, orderId));
+    } else {
+      await tx
+        .insert(schema.creditOrder)
+        .values({
+          id: `ord_${orderId}`,
+          orderId,
+          userId: targetUserId,
+          packId,
+          credits: creditsGranted,
+          amountUsd: event.data.amount || (pack ? pack.priceUsd.toFixed(2) : '1.90'),
+          currency: event.data.currency || 'USD',
+          status: 'paid',
+          paidAt: new Date(),
+        })
+        .onConflictDoNothing();
+    }
+
+    console.log(
+      `[webhook] Successfully fulfilled order ${orderId}. User ${targetUserId} balance is now ${updatedWallet.balance} credits.`
+    );
+  });
 }

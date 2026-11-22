@@ -4,7 +4,7 @@ export const messages = {
     pricing: 'Credit Packs',
     signIn: 'Sign In',
     signOut: 'Sign Out',
-    tagline: 'Portrait Feedback & Suggestions',
+    tagline: 'Portrait & Color Studio',
     credits: 'Credits',
   },
   hero: {
@@ -133,7 +133,7 @@ export const messages = {
     },
   },
   footer: {
-    copyright: '© 2026 Attractiveness AI. All rights reserved.',
+    copyright: '© 2026 ColorAI. All rights reserved.',
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
     contact: 'Contact Support',

@@ -22,16 +22,20 @@ const globalForDb = globalThis as unknown as {
   pool: Pool | undefined;
 };
 
+const useSsl =
+  Boolean(connectionString) &&
+  process.env.DATABASE_SSL !== 'false' &&
+  !connectionString!.includes('sslmode=disable') &&
+  !connectionString!.includes('localhost') &&
+  !connectionString!.includes('127.0.0.1');
+
 export const pool =
   globalForDb.pool ??
   new Pool({
     connectionString:
       connectionString ||
       'postgresql://placeholder:placeholder@localhost:5432/placeholder',
-    ssl:
-      connectionString && !connectionString.includes('localhost')
-        ? { rejectUnauthorized: false }
-        : undefined,
+    ssl: useSsl ? { rejectUnauthorized: false } : undefined,
     max: 5,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 15000,

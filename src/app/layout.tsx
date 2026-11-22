@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
 import { APP_CONFIG } from '@/lib/config';
 import { messages } from '@/lib/messages/en';
-import { History, CreditCard } from 'lucide-react';
+import { History, CreditCard, ScanFace, Palette } from 'lucide-react';
 import { NavbarAuth } from '@/components/navbar-auth';
 import './globals.css';
 
@@ -22,7 +22,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: `${APP_CONFIG.appName} - Portrait Feedback & Lighting Suggestions`,
+  title: `${APP_CONFIG.appName} - Portrait & Personal Color Studio`,
   description: messages.hero.subtitle,
 };
 
@@ -51,19 +51,33 @@ export default function RootLayout({
               </div>
             </Link>
 
-            <nav className="flex items-center gap-2 sm:gap-6">
+            <nav className="flex items-center gap-2 sm:gap-5">
+              <Link
+                href="/attractiveness-test"
+                className="hidden lg:flex items-center gap-1.5 text-sm font-medium text-[#575254] hover:text-[#e05670] transition-colors"
+              >
+                <ScanFace size={16} />
+                <span>Attractiveness</span>
+              </Link>
+              <Link
+                href="/color-analysis"
+                className="hidden lg:flex items-center gap-1.5 text-sm font-medium text-[#575254] hover:text-[#e05670] transition-colors"
+              >
+                <Palette size={16} />
+                <span>Color Analysis</span>
+              </Link>
               <Link
                 href="/history"
-                className="hidden sm:flex items-center gap-1.5 text-sm sm:text-base font-medium text-[#575254] hover:text-[#e05670] transition-colors"
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-[#575254] hover:text-[#e05670] transition-colors"
               >
-                <History size={17} />
+                <History size={16} />
                 <span>{messages.nav.history}</span>
               </Link>
               <Link
                 href="/pricing"
-                className="hidden md:flex items-center gap-1.5 text-sm sm:text-base font-medium text-[#575254] hover:text-[#e05670] transition-colors"
+                className="hidden md:flex items-center gap-1.5 text-sm font-medium text-[#575254] hover:text-[#e05670] transition-colors"
               >
-                <CreditCard size={17} />
+                <CreditCard size={16} />
                 <span>{messages.nav.pricing}</span>
               </Link>
               <NavbarAuth />
@@ -81,15 +95,15 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p>{messages.footer.copyright}</p>
             <div className="flex items-center gap-6">
-              <span className="hover:text-[#f43f5e] cursor-pointer transition-colors">
+              <Link href="/terms" className="hover:text-[#e05670] transition-colors">
                 {messages.footer.terms}
-              </span>
-              <span className="hover:text-[#f43f5e] cursor-pointer transition-colors">
+              </Link>
+              <Link href="/privacy" className="hover:text-[#e05670] transition-colors">
                 {messages.footer.privacy}
-              </span>
-              <span className="hover:text-[#f43f5e] cursor-pointer transition-colors">
+              </Link>
+              <Link href="/terms#contact" className="hover:text-[#e05670] transition-colors">
                 {messages.footer.contact}
-              </span>
+              </Link>
             </div>
           </div>
         </footer>

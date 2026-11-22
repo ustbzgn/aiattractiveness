@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { headers, cookies } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { getOrCreateUserWallet } from '@/lib/credits/wallet';
-import { getOrCreateCurrentUserId } from '@/lib/auth/guest';
+import { getOrCreateUserWallet, getUserWallet } from '@/lib/credits/wallet';
+import { resolveCurrentUserId } from '@/lib/auth/guest';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -13,22 +13,40 @@ export async function GET() {
     const session = await auth.api.getSession({ headers: headerList });
     const cookieStore = await cookies();
 
-    // Resolve user ID: authenticated user or persistent 2-year guest
-    const userResolution = await getOrCreateCurrentUserId(session?.user?.id || null, cookieStore);
-    const targetUserId = userResolution.userId;
+    // Read-only resolution: never create DB records for anonymous visitors without a cookie
+    const userResolution = await resolveCurrentUserId(session?.user?.id || null, cookieStore);
 
-    const wallet = await getOrCreateUserWallet(targetUserId);
+    if (!userResolution.userId) {
+      return NextResponse.json({
+        success: true,
+        authenticated: false,
+        isGuest: true,
+        balance: 0,
+        wallet: {
+          id: null,
+          balance: 0,
+          lifetimeGranted: 0,
+          lifetimeSpent: 0,
+        },
+      });
+    }
+
+    const wallet = userResolution.isGuest
+      ? await getUserWallet(userResolution.userId)
+      : await getOrCreateUserWallet(userResolution.userId, 0);
+
+    const balance = wallet?.balance ?? 0;
 
     return NextResponse.json({
       success: true,
       authenticated: !userResolution.isGuest,
       isGuest: userResolution.isGuest,
-      balance: wallet.balance,
+      balance,
       wallet: {
-        id: wallet.id,
-        balance: wallet.balance,
-        lifetimeGranted: wallet.lifetimeGranted,
-        lifetimeSpent: wallet.lifetimeSpent,
+        id: wallet?.id ?? null,
+        balance,
+        lifetimeGranted: wallet?.lifetimeGranted ?? 0,
+        lifetimeSpent: wallet?.lifetimeSpent ?? 0,
       },
     });
   } catch (error) {

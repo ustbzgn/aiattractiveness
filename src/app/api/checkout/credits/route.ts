@@ -58,11 +58,12 @@ export async function POST(request: Request) {
   // 4. Create checkout session via payment provider
   try {
     const payment = getPaymentProvider();
+    const packCredits = pack.totalCredits || pack.credits;
     const result = await payment.createCreditCheckout({
       userId: targetUserId,
       userEmail,
       packId: pack.id,
-      credits: pack.credits,
+      credits: packCredits,
       priceUsd: pack.priceUsd,
       successUrl,
       cancelUrl,
@@ -70,7 +71,9 @@ export async function POST(request: Request) {
 
     // 5. Store pending order record
     const orderId = result.orderId || `ord_${result.sessionId}`;
-    const isMock = orderId.startsWith('demo_ord_') || (result.checkoutUrl && result.checkoutUrl.includes('mock=true'));
+    const isMock =
+      process.env.NODE_ENV !== 'production' &&
+      (orderId.startsWith('demo_ord_') || (result.checkoutUrl && result.checkoutUrl.includes('mock=true')));
 
     if (isMock) {
       try {
@@ -91,7 +94,7 @@ export async function POST(request: Request) {
           orderId,
           userId: targetUserId,
           packId: pack.id,
-          credits: pack.credits,
+          credits: packCredits,
           amountUsd: pack.priceUsd.toFixed(2),
           currency: 'USD',
           status: 'pending',

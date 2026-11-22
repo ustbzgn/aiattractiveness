@@ -38,7 +38,7 @@ export const auth = betterAuth({
   secret: authSecret,
   advanced: {
     // Independent cookie prefix ensuring zero collision with other projects
-    cookiePrefix: 'aiattractiveness',
+    cookiePrefix: 'colorai',
     useSecureCookies: process.env.NODE_ENV === 'production',
   },
   trustedOrigins: [

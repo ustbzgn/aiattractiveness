@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, gte, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import * as schema from '@/lib/db/schema';
 
@@ -15,23 +15,32 @@ export class InsufficientCreditsError extends Error {
 }
 
 /**
- * Ensures user has a credit wallet. If not, creates one and grants 20 free starter credits.
+ * Fetches an existing wallet without creating one.
  */
-export async function getOrCreateUserWallet(userId: string) {
+export async function getUserWallet(userId: string) {
   const existing = await db
     .select()
     .from(schema.creditWallet)
     .where(eq(schema.creditWallet.userId, userId))
     .limit(1);
 
-  if (existing.length > 0) {
-    return existing[0];
+  return existing[0] ?? null;
+}
+
+/**
+ * Ensures user has a credit wallet. Defaults to 0 initial credits
+ * (registered user welcome bonus is granted exclusively via Better Auth user.create hook).
+ */
+export async function getOrCreateUserWallet(userId: string, initialCredits: number = 0) {
+  const existing = await getUserWallet(userId);
+  if (existing) {
+    return existing;
   }
 
   const walletId = `wlt_${userId}`;
-  const starterCredits = 20; // 20 starter credits (equivalent to $1.00, allows 2 fast tests)
+  const starterCredits = Math.max(0, Math.floor(initialCredits));
 
-  await db
+  const inserted = await db
     .insert(schema.creditWallet)
     .values({
       id: walletId,
@@ -40,31 +49,28 @@ export async function getOrCreateUserWallet(userId: string) {
       lifetimeGranted: starterCredits,
       lifetimeSpent: 0,
     })
-    .onConflictDoNothing();
+    .onConflictDoNothing()
+    .returning();
 
-  // Create initial complimentary ledger record
-  await db
-    .insert(schema.creditLedger)
-    .values({
-      id: `ldg_init_${userId}_${Date.now()}`,
-      walletId,
-      userId,
-      amount: starterCredits,
-      balanceAfter: starterCredits,
-      type: 'pack_purchase',
-      referenceId: 'welcome_gift_starter_credits',
-      notes: 'Welcome gift: 20 complimentary starter credits upon registration',
-    })
-    .onConflictDoNothing();
+  if (inserted.length > 0 && starterCredits > 0) {
+    await db
+      .insert(schema.creditLedger)
+      .values({
+        id: `ldg_init_${userId}_${Date.now()}`,
+        walletId,
+        userId,
+        amount: starterCredits,
+        balanceAfter: starterCredits,
+        type: 'pack_purchase',
+        referenceId: 'welcome_gift_starter_credits',
+        notes: `Welcome gift: ${starterCredits} complimentary starter credits`,
+      })
+      .onConflictDoNothing();
+  }
 
-  const fresh = await db
-    .select()
-    .from(schema.creditWallet)
-    .where(eq(schema.creditWallet.userId, userId))
-    .limit(1);
-
+  const fresh = await getUserWallet(userId);
   return (
-    fresh[0] || {
+    fresh || {
       id: walletId,
       userId,
       balance: starterCredits,
@@ -77,7 +83,7 @@ export async function getOrCreateUserWallet(userId: string) {
 }
 
 /**
- * Atomically debits credits from user's wallet with ledger audit record.
+ * Atomically debits credits from user's wallet with conditional balance check and ledger audit record.
  */
 export async function deductCredits(
   userId: string,
@@ -89,43 +95,52 @@ export async function deductCredits(
     throw new Error('Deduction amount must be positive');
   }
 
-  const wallet = await getOrCreateUserWallet(userId);
+  return await db.transaction(async (tx) => {
+    const updated = await tx
+      .update(schema.creditWallet)
+      .set({
+        balance: sql`${schema.creditWallet.balance} - ${amount}`,
+        lifetimeSpent: sql`${schema.creditWallet.lifetimeSpent} + ${amount}`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(schema.creditWallet.userId, userId),
+          gte(schema.creditWallet.balance, amount)
+        )
+      )
+      .returning();
 
-  if (wallet.balance < amount) {
-    throw new InsufficientCreditsError(wallet.balance, amount);
-  }
+    if (updated.length === 0) {
+      const existing = await tx
+        .select({ balance: schema.creditWallet.balance })
+        .from(schema.creditWallet)
+        .where(eq(schema.creditWallet.userId, userId))
+        .limit(1);
+      throw new InsufficientCreditsError(existing[0]?.balance ?? 0, amount);
+    }
 
-  const transactionId = `ldg_deduct_${userId}_${Date.now()}`;
-  const newBalance = wallet.balance - amount;
+    const wallet = updated[0];
+    const transactionId = `ldg_deduct_${userId}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
-  // Atomic update wallet balance
-  await db
-    .update(schema.creditWallet)
-    .set({
-      balance: sql`${schema.creditWallet.balance} - ${amount}`,
-      lifetimeSpent: sql`${schema.creditWallet.lifetimeSpent} + ${amount}`,
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.creditWallet.userId, userId));
+    await tx.insert(schema.creditLedger).values({
+      id: transactionId,
+      walletId: wallet.id,
+      userId,
+      amount: -amount,
+      balanceAfter: wallet.balance,
+      type: 'report_settle',
+      referenceId,
+      notes,
+      metadata: { timestamp: new Date().toISOString(), fee: amount },
+    });
 
-  // Insert ledger record
-  await db.insert(schema.creditLedger).values({
-    id: transactionId,
-    walletId: wallet.id,
-    userId,
-    amount: -amount,
-    balanceAfter: newBalance,
-    type: 'report_settle',
-    referenceId,
-    notes,
-    metadata: { timestamp: new Date().toISOString(), fee: amount },
+    return {
+      success: true,
+      balanceRemaining: wallet.balance,
+      transactionId,
+    };
   });
-
-  return {
-    success: true,
-    balanceRemaining: newBalance,
-    transactionId,
-  };
 }
 
 /**
@@ -139,30 +154,36 @@ export async function refundCredits(
 ): Promise<{ success: boolean; newBalance: number }> {
   if (amount <= 0) return { success: true, newBalance: 0 };
 
-  const wallet = await getOrCreateUserWallet(userId);
-  const refundId = `ldg_refund_${userId}_${Date.now()}`;
-  const restoredBalance = wallet.balance + amount;
+  return await db.transaction(async (tx) => {
+    const updated = await tx
+      .update(schema.creditWallet)
+      .set({
+        balance: sql`${schema.creditWallet.balance} + ${amount}`,
+        lifetimeSpent: sql`GREATEST(0, ${schema.creditWallet.lifetimeSpent} - ${amount})`,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.creditWallet.userId, userId))
+      .returning();
 
-  await db
-    .update(schema.creditWallet)
-    .set({
-      balance: sql`${schema.creditWallet.balance} + ${amount}`,
-      lifetimeSpent: sql`${schema.creditWallet.lifetimeSpent} - ${amount}`,
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.creditWallet.userId, userId));
+    if (updated.length === 0) {
+      return { success: false, newBalance: 0 };
+    }
 
-  await db.insert(schema.creditLedger).values({
-    id: refundId,
-    walletId: wallet.id,
-    userId,
-    amount,
-    balanceAfter: restoredBalance,
-    type: 'report_refund',
-    referenceId,
-    notes: reason,
-    metadata: { refundedAt: new Date().toISOString() },
+    const wallet = updated[0];
+    const refundId = `ldg_refund_${userId}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    await tx.insert(schema.creditLedger).values({
+      id: refundId,
+      walletId: wallet.id,
+      userId,
+      amount,
+      balanceAfter: wallet.balance,
+      type: 'report_refund',
+      referenceId,
+      notes: reason,
+      metadata: { refundedAt: new Date().toISOString() },
+    });
+
+    return { success: true, newBalance: wallet.balance };
   });
-
-  return { success: true, newBalance: restoredBalance };
 }

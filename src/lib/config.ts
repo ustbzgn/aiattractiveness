@@ -1,5 +1,5 @@
 export const APP_CONFIG = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Attractiveness AI',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'ColorAI',
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002',
   maxUploadSizeBytes: 10 * 1024 * 1024, // 10MB
   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const,

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { creditWallet, creditLedger, creditOrder } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { getCreditPackageById } from './packages';
 
 export interface WalletBalance {
@@ -89,25 +89,31 @@ export class CreditService {
       return { success: false, balance: 0, error: `Unknown pack ID: ${packId}` };
     }
 
-    // Check if order already recorded
-    const existingOrders = await db
-      .select()
-      .from(creditOrder)
-      .where(eq(creditOrder.orderId, orderId))
-      .limit(1);
-
-    if (existingOrders.length > 0 && existingOrders[0].status === 'paid') {
-      const wallet = await this.getOrCreateWallet(userId);
-      return {
-        success: true,
-        balance: wallet.balance,
-        error: 'Order already fulfilled (idempotent no-op)',
-      };
-    }
+    const creditsToGrant = pack.totalCredits || pack.credits;
 
     // Execute atomic update inside transaction
     return await db.transaction(async (tx) => {
-      // 1. Lock/Fetch wallet
+      // Check if order already recorded as paid inside transaction
+      const existingOrders = await tx
+        .select()
+        .from(creditOrder)
+        .where(eq(creditOrder.orderId, orderId))
+        .limit(1);
+
+      if (existingOrders.length > 0 && existingOrders[0].status === 'paid') {
+        const existingWallet = await tx
+          .select()
+          .from(creditWallet)
+          .where(eq(creditWallet.userId, userId))
+          .limit(1);
+        return {
+          success: true,
+          balance: existingWallet[0]?.balance ?? 0,
+          error: 'Order already fulfilled (idempotent no-op)',
+        };
+      }
+
+      // 1. Ensure wallet exists
       const walletList = await tx
         .select()
         .from(creditWallet)
@@ -126,22 +132,23 @@ export class CreditService {
             lifetimeGranted: 0,
             lifetimeSpent: 0,
           })
+          .onConflictDoNothing()
           .returning();
-        wallet = inserted[0];
+        wallet = inserted[0] ?? (await tx.select().from(creditWallet).where(eq(creditWallet.userId, userId)).limit(1))[0];
       }
 
-      const newBalance = wallet.balance + pack.credits;
-      const newLifetimeGranted = wallet.lifetimeGranted + pack.credits;
-
-      // 2. Update wallet
-      await tx
+      // 2. Atomically increment wallet balance
+      const [updatedWallet] = await tx
         .update(creditWallet)
         .set({
-          balance: newBalance,
-          lifetimeGranted: newLifetimeGranted,
+          balance: sql`${creditWallet.balance} + ${creditsToGrant}`,
+          lifetimeGranted: sql`${creditWallet.lifetimeGranted} + ${creditsToGrant}`,
           updatedAt: new Date(),
         })
-        .where(eq(creditWallet.id, wallet.id));
+        .where(eq(creditWallet.id, wallet.id))
+        .returning();
+
+      const newBalance = updatedWallet.balance;
 
       // 3. Insert immutable ledger entry
       const ledgerId = `led_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -149,11 +156,11 @@ export class CreditService {
         id: ledgerId,
         walletId: wallet.id,
         userId,
-        amount: pack.credits,
+        amount: creditsToGrant,
         balanceAfter: newBalance,
         type: 'pack_purchase',
         referenceId: orderId,
-        notes: `Purchased ${pack.name} (${pack.credits} credits)`,
+        notes: `Purchased ${pack.name} (${creditsToGrant} credits)`,
         metadata: { packId, amountUsd, currency },
       });
 
@@ -162,6 +169,7 @@ export class CreditService {
         await tx
           .update(creditOrder)
           .set({
+            credits: creditsToGrant,
             status: 'paid',
             paidAt: new Date(),
           })
@@ -172,7 +180,7 @@ export class CreditService {
           orderId,
           userId,
           packId,
-          credits: pack.credits,
+          credits: creditsToGrant,
           amountUsd,
           currency,
           status: 'paid',
@@ -218,10 +226,24 @@ export class CreditService {
     }
 
     return await db.transaction(async (tx) => {
+      // Resolve the exact user who received the credits (handles guest-to-member email reconciliation)
+      const purchaseLedger = await tx
+        .select({ userId: creditLedger.userId })
+        .from(creditLedger)
+        .where(
+          and(
+            eq(creditLedger.referenceId, orderId),
+            eq(creditLedger.type, 'pack_purchase')
+          )
+        )
+        .limit(1);
+
+      const creditedUserId = purchaseLedger[0]?.userId || order.userId;
+
       const walletList = await tx
         .select()
         .from(creditWallet)
-        .where(eq(creditWallet.userId, order.userId))
+        .where(eq(creditWallet.userId, creditedUserId))
         .limit(1);
 
       if (walletList.length === 0) {
@@ -247,7 +269,7 @@ export class CreditService {
       await tx.insert(creditLedger).values({
         id: ledgerId,
         walletId: wallet.id,
-        userId: order.userId,
+        userId: creditedUserId,
         amount: -deductAmount,
         balanceAfter: newBalance,
         type: 'order_refund',

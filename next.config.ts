@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  serverExternalPackages: ['sharp'],
   allowedDevOrigins: [
     '192.168.1.9',
     '192.168.1.9:3002',

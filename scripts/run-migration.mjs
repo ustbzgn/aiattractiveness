@@ -36,18 +36,24 @@ const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl || databaseUrl.includes('placeholder')) {
   console.error('\x1b[31m[ERROR]\x1b[0m DATABASE_URL is not configured in .env.local.');
   console.log('Please set a valid PostgreSQL connection string in .env.local:');
-  console.log('DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=aiattractiveness"');
+  console.log('DATABASE_URL="postgresql://user:password@localhost:5432/dbname?schema=colorai_portal"');
   process.exit(1);
 }
 
-console.log('\x1b[36m[aiattractiveness migration]\x1b[0m Starting isolated schema migration...');
+console.log('\x1b[36m[colorai_portal migration]\x1b[0m Starting isolated schema migration...');
 console.log('\x1b[33m[Constraint Checklist]\x1b[0m:');
-console.log(' - Target Schema: "aiattractiveness"');
+console.log(' - Target Schema: "colorai_portal"');
 console.log(' - Never touches public or other projects tables');
+
+const useSsl =
+  process.env.DATABASE_SSL !== 'false' &&
+  !databaseUrl.includes('sslmode=disable') &&
+  !databaseUrl.includes('localhost') &&
+  !databaseUrl.includes('127.0.0.1');
 
 const client = new pg.Client({
   connectionString: databaseUrl,
-  ssl: !databaseUrl.includes('localhost') ? { rejectUnauthorized: false } : undefined,
+  ssl: useSsl ? { rejectUnauthorized: false } : undefined,
 });
 
 async function run() {
@@ -74,17 +80,17 @@ async function run() {
     console.log('\x1b[34m[Executing SQL]\x1b[0m Running isolated 0001_aiattractiveness_schema.sql...');
     await client.query(migrationSql);
 
-    // Verify all created tables in aiattractiveness schema
+    // Verify all created tables in colorai_portal schema
     const res = await client.query(`
       SELECT table_name
       FROM information_schema.tables
-      WHERE table_schema = 'aiattractiveness'
+      WHERE table_schema = 'colorai_portal'
       ORDER BY table_name;
     `);
 
-    console.log('\x1b[32m[Migration Complete]\x1b[0m Verified tables in schema "aiattractiveness":');
+    console.log('\x1b[32m[Migration Complete]\x1b[0m Verified tables in schema "colorai_portal":');
     res.rows.forEach((row, i) => {
-      console.log(`  ${i + 1}. aiattractiveness.${row.table_name}`);
+      console.log(`  ${i + 1}. colorai_portal.${row.table_name}`);
     });
 
   } catch (err) {

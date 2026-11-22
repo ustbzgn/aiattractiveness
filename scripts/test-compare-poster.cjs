@@ -18,8 +18,8 @@ require.extensions['.ts'] = (module, file) => {
 process.env.TOAPIS_API_KEY = 'offline-test';
 process.env.TOAPIS_BASE_URL = 'https://example.invalid';
 
-const { generateComparePoster } = require('../src/lib/ai/compare-poster.ts');
-const { buildComparePosterPrompt } = require('../src/lib/ai/compare-poster-prompt.ts');
+const { generateComparePoster } = require('../src/features/attractiveness/server/compare-poster.ts');
+const { buildComparePosterPrompt } = require('../src/features/attractiveness/server/compare-poster-prompt.ts');
 
 const photoA = { buffer: Buffer.from('mock-photo-a'), mimeType: 'image/jpeg' };
 const photoB = { buffer: Buffer.from('mock-photo-b'), mimeType: 'image/png' };

@@ -17,9 +17,9 @@ require.extensions['.ts'] = (module, file) => {
 };
 process.env.TOAPIS_API_KEY = 'offline-test';
 process.env.TOAPIS_BASE_URL = 'https://example.invalid';
-const { generateDeepScanPoster } = require('../src/lib/ai/deep-scan-poster.ts');
-const { buildDeepScanPosterPrompt } = require('../src/lib/ai/deep-scan-poster-prompt.ts');
-const { DEEP_SCAN_FIXTURES } = require('../src/lib/types/deep-scan.ts');
+const { generateDeepScanPoster } = require('../src/features/attractiveness/server/deep-scan-poster.ts');
+const { buildDeepScanPosterPrompt } = require('../src/features/attractiveness/server/deep-scan-poster-prompt.ts');
+const { DEEP_SCAN_FIXTURES } = require('../src/features/attractiveness/types.ts');
 const portrait = { buffer: Buffer.from('mock-photo'), mimeType: 'image/jpeg' };
 const calls = [];
 function mock(responses) {

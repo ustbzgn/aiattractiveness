@@ -10,14 +10,15 @@ import {
 } from 'drizzle-orm/pg-core';
 
 /**
- * STRICT ISOLATION: All database objects for this project are created
- * inside the dedicated 'aiattractiveness' PostgreSQL schema.
- * Never references or modifies agentory tables or any public tables.
+ * STRICT ISOLATION: All database objects for ColorAI Portal are created
+ * inside the dedicated 'colorai_portal' PostgreSQL schema.
+ * Shared across all portal apps (attractiveness, color-analysis, future tools).
  */
-export const aatSchema = pgSchema('aiattractiveness');
+export const portalSchema = pgSchema('colorai_portal');
+export const aatSchema = portalSchema;
 
 // 1. Better Auth User Table
-export const user = aatSchema.table('user', {
+export const user = portalSchema.table('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
@@ -85,7 +86,7 @@ export const creditWallet = aatSchema.table(
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
   (t) => [
-    uniqueIndex('aat_wallet_user_idx').on(t.userId),
+    uniqueIndex('colorai_wallet_user_idx').on(t.userId),
   ]
 );
 
@@ -109,9 +110,9 @@ export const creditLedger = aatSchema.table(
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (t) => [
-    index('aat_ledger_user_idx').on(t.userId),
-    index('aat_ledger_ref_idx').on(t.referenceId),
-    index('aat_ledger_created_idx').on(t.createdAt),
+    index('colorai_ledger_user_idx').on(t.userId),
+    index('colorai_ledger_ref_idx').on(t.referenceId),
+    index('colorai_ledger_created_idx').on(t.createdAt),
   ]
 );
 
@@ -135,9 +136,9 @@ export const creditOrder = aatSchema.table(
     refundedAt: timestamp('refunded_at'),
   },
   (t) => [
-    uniqueIndex('aat_order_waffo_id_idx').on(t.orderId),
-    index('aat_order_user_idx').on(t.userId),
-    index('aat_order_status_idx').on(t.status),
+    uniqueIndex('colorai_order_waffo_id_idx').on(t.orderId),
+    index('colorai_order_user_idx').on(t.userId),
+    index('colorai_order_status_idx').on(t.status),
   ]
 );
 
@@ -153,7 +154,7 @@ export const webhookEvent = aatSchema.table(
     processedAt: timestamp('processed_at').notNull().defaultNow(),
   },
   (t) => [
-    index('aat_webhook_order_idx').on(t.orderId),
+    index('colorai_webhook_order_idx').on(t.orderId),
   ]
 );
 
@@ -175,7 +176,7 @@ export const reportJob = aatSchema.table(
     completedAt: timestamp('completed_at'),
   },
   (t) => [
-    index('aat_report_user_idx').on(t.userId),
-    index('aat_report_status_idx').on(t.status),
+    index('colorai_report_user_idx').on(t.userId),
+    index('colorai_report_status_idx').on(t.status),
   ]
 );

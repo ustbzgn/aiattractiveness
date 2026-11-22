@@ -14,16 +14,15 @@ export function NavbarAuth() {
   const [credits, setCredits] = useState<number | null>(null);
   const [isLoadingCredits, setIsLoadingCredits] = useState(false);
 
-  // Fetch user credit balance
+  // Fetch credit balance for both signed-in members and credited guests
   const fetchCredits = useCallback(async () => {
-    if (!session?.user) return;
     try {
       setIsLoadingCredits(true);
-      const res = await fetch('/api/user/credits');
+      const res = await fetch('/api/user/credits', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        if (data.success && data.wallet) {
-          setCredits(data.wallet.balance);
+        if (data.success && typeof data.balance === 'number') {
+          setCredits(data.balance);
         }
       }
     } catch (err) {
@@ -31,15 +30,11 @@ export function NavbarAuth() {
     } finally {
       setIsLoadingCredits(false);
     }
-  }, [session?.user]);
+  }, []);
 
   useEffect(() => {
-    if (session?.user) {
-      fetchCredits();
-    } else {
-      setCredits(null);
-    }
-  }, [session?.user, fetchCredits]);
+    fetchCredits();
+  }, [session?.user?.id, fetchCredits]);
 
   // Listen for custom event to refresh credits after analysis
   useEffect(() => {
@@ -174,12 +169,29 @@ export function NavbarAuth() {
 
   return (
     <div className="flex items-center gap-2">
-      <Link
-        href="/pricing"
-        className="hidden sm:inline-flex text-xs font-semibold text-[#8e727e] hover:text-[#f43f5e] transition-colors px-2 py-1"
-      >
-        Pricing
-      </Link>
+      {credits !== null && credits > 0 ? (
+        <Link
+          href="/pricing"
+          title="Click to recharge credits"
+          className="group flex items-center gap-1 sm:gap-1.5 py-1 px-2 sm:px-3 rounded-full bg-gradient-to-r from-[#fff1f4] to-[#fdf2f4] border border-[#fecdd6] text-[#e11d48] hover:border-[#f43f5e] hover:shadow-xs transition-all text-xs font-semibold shrink-0"
+        >
+          <Coins size={14} className="text-[#f43f5e] shrink-0" />
+          <span>
+            <span>{credits}</span>
+            <span className="hidden sm:inline ml-1">Credits</span>
+          </span>
+          <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#f43f5e] text-white flex items-center justify-center text-[9px] sm:text-[10px] ml-0.5 group-hover:scale-110 transition-transform shrink-0">
+            <Plus size={10} strokeWidth={3} />
+          </span>
+        </Link>
+      ) : (
+        <Link
+          href="/pricing"
+          className="inline-flex md:hidden text-xs font-semibold text-[#575254] hover:text-[#e05670] transition-colors px-2 py-1"
+        >
+          Pricing
+        </Link>
+      )}
       <Link
         href="/sign-in"
         className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full border border-[#f7d6de] bg-white text-[#f43f5e] hover:bg-[#fff1f4] hover:border-[#fecdd6] transition-all shadow-xs"

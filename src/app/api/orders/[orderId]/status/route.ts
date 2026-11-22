@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { creditOrder } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { getOrCreateCurrentUserId } from '@/lib/auth/guest';
+import { resolveCurrentUserId } from '@/lib/auth/guest';
 import { CreditService } from '@/lib/credits/service';
 
 export const dynamic = 'force-dynamic';
@@ -21,8 +21,12 @@ export async function GET(
   context: { params: Promise<{ orderId: string }> }
 ) {
   const session = await auth.api.getSession({ headers: request.headers });
-  const userResolution = await getOrCreateCurrentUserId(session?.user?.id || null);
+  const userResolution = await resolveCurrentUserId(session?.user?.id || null);
   const currentUserId = userResolution.userId;
+
+  if (!currentUserId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const { orderId } = await context.params;
   if (!orderId) {
@@ -41,34 +45,35 @@ export async function GET(
       )
       .limit(1);
 
-    // If demo order is pending, auto-fulfill for seamless development testing
-    if (orders.length > 0 && orders[0].status !== 'paid' && orderId.startsWith('demo_ord_')) {
-      await CreditService.grantCreditsFromOrder({
-        orderId: orders[0].orderId,
-        userId: currentUserId,
-        packId: orders[0].packId,
-        amountUsd: orders[0].amountUsd,
-        currency: orders[0].currency,
-      });
-      orders = await db
-        .select()
-        .from(creditOrder)
-        .where(eq(creditOrder.orderId, orderId))
-        .limit(1);
-    } else if (orders.length === 0 && orderId.startsWith('demo_ord_')) {
-      // Demo order directly queried without prior insert
-      await CreditService.grantCreditsFromOrder({
-        orderId,
-        userId: currentUserId,
-        packId: 'pack_5usd',
-        amountUsd: '5.00',
-        currency: 'USD',
-      });
-      orders = await db
-        .select()
-        .from(creditOrder)
-        .where(eq(creditOrder.orderId, orderId))
-        .limit(1);
+    // Development-only: auto-fulfill mock demo orders for local testing
+    if (process.env.NODE_ENV !== 'production' && orderId.startsWith('demo_ord_')) {
+      if (orders.length > 0 && orders[0].status !== 'paid') {
+        await CreditService.grantCreditsFromOrder({
+          orderId: orders[0].orderId,
+          userId: currentUserId,
+          packId: orders[0].packId,
+          amountUsd: orders[0].amountUsd,
+          currency: orders[0].currency,
+        });
+        orders = await db
+          .select()
+          .from(creditOrder)
+          .where(eq(creditOrder.orderId, orderId))
+          .limit(1);
+      } else if (orders.length === 0) {
+        await CreditService.grantCreditsFromOrder({
+          orderId,
+          userId: currentUserId,
+          packId: 'pack_5usd',
+          amountUsd: '4.90',
+          currency: 'USD',
+        });
+        orders = await db
+          .select()
+          .from(creditOrder)
+          .where(eq(creditOrder.orderId, orderId))
+          .limit(1);
+      }
     }
 
     if (orders.length === 0) {

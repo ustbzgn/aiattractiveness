@@ -38,8 +38,11 @@ export class WaffoPancakeProvider implements PaymentProvider {
     const productId = getWaffoProductIdForPack(pack);
 
     // If merchant credentials are unconfigured or product ID is not a valid Waffo Product ID (PROD_xxx),
-    // provide an explicit, honest mock checkout URL pointing to the status page.
+    // only allow mock checkout in non-production environments.
     if (!merchantId || !privateKey || !productId || !productId.startsWith('PROD_')) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Checkout is temporarily unavailable. Please try again later.');
+      }
       const mockOrderId = `demo_ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const mockSessionId = `demo_sess_${Date.now()}`;
       return {
@@ -70,7 +73,7 @@ export class WaffoPancakeProvider implements PaymentProvider {
         userId: params.userId,
         packId: params.packId,
         credits: String(params.credits),
-        project: 'aiattractiveness',
+        project: 'colorai',
       },
       buyerIdentity: params.userId,
     });
